@@ -19,12 +19,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app.dashboard.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhook'
+import { Route as ApiCryptomusWebhookRouteImport } from './routes/api.cryptomus.webhook'
 import { Route as AppDashboardTeamRouteImport } from './routes/_app.dashboard.team'
 import { Route as AppDashboardSettingsRouteImport } from './routes/_app.dashboard.settings'
 import { Route as AppDashboardSessionsRouteImport } from './routes/_app.dashboard.sessions'
 import { Route as AppDashboardResumeRouteImport } from './routes/_app.dashboard.resume'
 import { Route as AppDashboardOrganizationRouteImport } from './routes/_app.dashboard.organization'
 import { Route as AppDashboardMockRouteImport } from './routes/_app.dashboard.mock'
+import { Route as AppDashboardLiveRouteImport } from './routes/_app.dashboard.live'
 import { Route as AppDashboardJobDescriptionsRouteImport } from './routes/_app.dashboard.job-descriptions'
 import { Route as AppDashboardInterviewPrepRouteImport } from './routes/_app.dashboard.interview-prep'
 import { Route as AppDashboardCreditsRouteImport } from './routes/_app.dashboard.credits'
@@ -79,6 +81,11 @@ const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   path: '/api/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCryptomusWebhookRoute = ApiCryptomusWebhookRouteImport.update({
+  id: '/api/cryptomus/webhook',
+  path: '/api/cryptomus/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppDashboardTeamRoute = AppDashboardTeamRouteImport.update({
   id: '/dashboard/team',
   path: '/dashboard/team',
@@ -108,6 +115,11 @@ const AppDashboardOrganizationRoute =
 const AppDashboardMockRoute = AppDashboardMockRouteImport.update({
   id: '/dashboard/mock',
   path: '/dashboard/mock',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardLiveRoute = AppDashboardLiveRouteImport.update({
+  id: '/dashboard/live',
+  path: '/dashboard/live',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardJobDescriptionsRoute =
@@ -145,12 +157,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
   '/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/dashboard/live': typeof AppDashboardLiveRoute
   '/dashboard/mock': typeof AppDashboardMockRoute
   '/dashboard/organization': typeof AppDashboardOrganizationRoute
   '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
+  '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/dashboard/': typeof AppDashboardIndexRoute
 }
@@ -166,12 +180,14 @@ export interface FileRoutesByTo {
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
   '/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/dashboard/live': typeof AppDashboardLiveRoute
   '/dashboard/mock': typeof AppDashboardMockRoute
   '/dashboard/organization': typeof AppDashboardOrganizationRoute
   '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
+  '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/dashboard': typeof AppDashboardIndexRoute
 }
@@ -189,12 +205,14 @@ export interface FileRoutesById {
   '/_app/dashboard/credits': typeof AppDashboardCreditsRoute
   '/_app/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
   '/_app/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/_app/dashboard/live': typeof AppDashboardLiveRoute
   '/_app/dashboard/mock': typeof AppDashboardMockRoute
   '/_app/dashboard/organization': typeof AppDashboardOrganizationRoute
   '/_app/dashboard/resume': typeof AppDashboardResumeRoute
   '/_app/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/_app/dashboard/settings': typeof AppDashboardSettingsRoute
   '/_app/dashboard/team': typeof AppDashboardTeamRoute
+  '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
 }
@@ -212,12 +230,14 @@ export interface FileRouteTypes {
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
     | '/dashboard/job-descriptions'
+    | '/dashboard/live'
     | '/dashboard/mock'
     | '/dashboard/organization'
     | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
     | '/dashboard/team'
+    | '/api/cryptomus/webhook'
     | '/api/stripe/webhook'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -233,12 +253,14 @@ export interface FileRouteTypes {
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
     | '/dashboard/job-descriptions'
+    | '/dashboard/live'
     | '/dashboard/mock'
     | '/dashboard/organization'
     | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
     | '/dashboard/team'
+    | '/api/cryptomus/webhook'
     | '/api/stripe/webhook'
     | '/dashboard'
   id:
@@ -255,12 +277,14 @@ export interface FileRouteTypes {
     | '/_app/dashboard/credits'
     | '/_app/dashboard/interview-prep'
     | '/_app/dashboard/job-descriptions'
+    | '/_app/dashboard/live'
     | '/_app/dashboard/mock'
     | '/_app/dashboard/organization'
     | '/_app/dashboard/resume'
     | '/_app/dashboard/sessions'
     | '/_app/dashboard/settings'
     | '/_app/dashboard/team'
+    | '/api/cryptomus/webhook'
     | '/api/stripe/webhook'
     | '/_app/dashboard/'
   fileRoutesById: FileRoutesById
@@ -274,6 +298,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  ApiCryptomusWebhookRoute: typeof ApiCryptomusWebhookRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
@@ -349,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cryptomus/webhook': {
+      id: '/api/cryptomus/webhook'
+      path: '/api/cryptomus/webhook'
+      fullPath: '/api/cryptomus/webhook'
+      preLoaderRoute: typeof ApiCryptomusWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/dashboard/team': {
       id: '/_app/dashboard/team'
       path: '/dashboard/team'
@@ -391,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardMockRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/dashboard/live': {
+      id: '/_app/dashboard/live'
+      path: '/dashboard/live'
+      fullPath: '/dashboard/live'
+      preLoaderRoute: typeof AppDashboardLiveRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard/job-descriptions': {
       id: '/_app/dashboard/job-descriptions'
       path: '/dashboard/job-descriptions'
@@ -427,6 +466,7 @@ interface AppRouteChildren {
   AppDashboardCreditsRoute: typeof AppDashboardCreditsRoute
   AppDashboardInterviewPrepRoute: typeof AppDashboardInterviewPrepRoute
   AppDashboardJobDescriptionsRoute: typeof AppDashboardJobDescriptionsRoute
+  AppDashboardLiveRoute: typeof AppDashboardLiveRoute
   AppDashboardMockRoute: typeof AppDashboardMockRoute
   AppDashboardOrganizationRoute: typeof AppDashboardOrganizationRoute
   AppDashboardResumeRoute: typeof AppDashboardResumeRoute
@@ -441,6 +481,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardCreditsRoute: AppDashboardCreditsRoute,
   AppDashboardInterviewPrepRoute: AppDashboardInterviewPrepRoute,
   AppDashboardJobDescriptionsRoute: AppDashboardJobDescriptionsRoute,
+  AppDashboardLiveRoute: AppDashboardLiveRoute,
   AppDashboardMockRoute: AppDashboardMockRoute,
   AppDashboardOrganizationRoute: AppDashboardOrganizationRoute,
   AppDashboardResumeRoute: AppDashboardResumeRoute,
@@ -461,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  ApiCryptomusWebhookRoute: ApiCryptomusWebhookRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport

@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { CryptoCheckout } from "~/components/billing/crypto-checkout";
 import { formatCurrency, formatDate } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/billing")({
@@ -178,6 +179,8 @@ function BillingPage() {
           </Card>
         ))}
       </div>
+
+      {canBill ? <CryptoCheckout /> : null}
 
       <Card>
         <CardHeader>

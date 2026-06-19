@@ -6,17 +6,21 @@ const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 
 // Friendly model aliases → OpenRouter model ids.
 export const MODELS = {
-  claude: "anthropic/claude-3.5-sonnet",
+  claude: "anthropic/claude-haiku-4.5",
   gpt: "openai/gpt-4o-mini",
-  gemini: "google/gemini-flash-1.5",
+  gemini: "google/gemini-3.5-flash",
 } as const;
 
 export type ModelAlias = keyof typeof MODELS;
 
 // OpenRouter is OpenAI-compatible, so we reuse the OpenAI SDK with a custom baseURL.
+// We disable the SDK's own retries (we implement bounded retry below) and set a
+// hard timeout so a stalled upstream can't hang a request indefinitely.
 const client = new OpenAI({
   apiKey: OPENROUTER_API_KEY || "placeholder",
   baseURL: "https://openrouter.ai/api/v1",
+  timeout: 60_000,
+  maxRetries: 0,
   defaultHeaders: {
     "HTTP-Referer": APP_URL,
     "X-Title": "OLat5",
@@ -100,13 +104,12 @@ export async function aiJSON<T>(opts: {
       model,
       temperature: opts.temperature ?? 0.3,
       max_tokens: opts.maxTokens ?? 2500,
-      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
           content:
             opts.system +
-            "\n\nRespond ONLY with a valid JSON object. No markdown, no commentary.",
+            "\n\nRespond ONLY with a single valid JSON object. No markdown fences, no commentary, no prose before or after.",
         },
         { role: "user", content: opts.user },
       ],
@@ -114,16 +117,27 @@ export async function aiJSON<T>(opts: {
   );
   const raw = res.choices[0]?.message?.content ?? "{}";
   try {
-    return { data: JSON.parse(stripFences(raw)) as T, model };
+    return { data: JSON.parse(extractJSON(raw)) as T, model };
   } catch (err) {
     throw new AIServiceError("AI returned invalid JSON", err);
   }
 }
 
-function stripFences(s: string): string {
-  const trimmed = s.trim();
-  if (trimmed.startsWith("```")) {
-    return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+// Robustly extract a JSON object/array from a model response that may include
+// markdown fences or stray prose. Works across Claude, GPT, and Gemini.
+function extractJSON(s: string): string {
+  let t = s.trim();
+  if (t.startsWith("```")) {
+    t = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
   }
-  return trimmed;
+  if (t.startsWith("{") || t.startsWith("[")) return t;
+  const objStart = t.indexOf("{");
+  const arrStart = t.indexOf("[");
+  const start =
+    objStart === -1 ? arrStart : arrStart === -1 ? objStart : Math.min(objStart, arrStart);
+  if (start === -1) return t;
+  const open = t[start];
+  const close = open === "{" ? "}" : "]";
+  const end = t.lastIndexOf(close);
+  return end > start ? t.slice(start, end + 1) : t;
 }
