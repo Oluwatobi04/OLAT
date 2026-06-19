@@ -11,6 +11,51 @@ export class DeepgramError extends Error {
   }
 }
 
+// Mint a short-lived, scoped Deepgram key so the browser/extension can stream
+// audio directly to Deepgram over WebSocket without exposing the master key.
+export async function createDeepgramTempKey(
+  ttlSeconds = 600,
+): Promise<{ key: string; expiresIn: number }> {
+  if (!isDeepgramConfigured()) {
+    throw new DeepgramError("Deepgram is not configured");
+  }
+
+  const projectsRes = await fetch("https://api.deepgram.com/v1/projects", {
+    headers: { Authorization: `Token ${DEEPGRAM_API_KEY}` },
+  });
+  if (!projectsRes.ok) {
+    throw new DeepgramError(`Deepgram projects error (${projectsRes.status})`);
+  }
+  const projectsJson = (await projectsRes.json()) as {
+    projects?: Array<{ project_id: string }>;
+  };
+  const projectId = projectsJson.projects?.[0]?.project_id;
+  if (!projectId) throw new DeepgramError("No Deepgram project found");
+
+  const keyRes = await fetch(
+    `https://api.deepgram.com/v1/projects/${projectId}/keys`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${DEEPGRAM_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        comment: "olat5-live-extension",
+        scopes: ["usage:write"],
+        time_to_live_in_seconds: ttlSeconds,
+      }),
+    },
+  );
+  if (!keyRes.ok) {
+    const detail = await keyRes.text().catch(() => "");
+    throw new DeepgramError(`Deepgram key error (${keyRes.status}): ${detail.slice(0, 150)}`);
+  }
+  const keyJson = (await keyRes.json()) as { key?: string };
+  if (!keyJson.key) throw new DeepgramError("Deepgram did not return a key");
+  return { key: keyJson.key, expiresIn: ttlSeconds };
+}
+
 export interface TranscriptSegment {
   speaker: string;
   text: string;
