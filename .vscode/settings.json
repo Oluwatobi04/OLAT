@@ -1,0 +1,6 @@
+{
+  "// OLat5": "Live Server (5500) cannot run this SSR app. Serve a redirect page that bounces to the real dev server on :3000.",
+  "liveServer.settings.root": "/.liveserver",
+  "liveServer.settings.NoBrowser": false,
+  "liveServer.settings.donotShowInfoMsg": true
+}

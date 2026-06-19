@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OLat5 — Redirecting…</title>
+    <!-- OLat5 runs on the Vite dev server (port 3000), not Live Server (5500).
+         This page bounces you to the real app. -->
+    <meta http-equiv="refresh" content="0; url=http://localhost:3000/" />
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        background: #0A0A0A; color: #e5e7eb;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .card { text-align: center; max-width: 420px; padding: 2rem; }
+      .logo {
+        width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 1rem;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 24px; color: #fff;
+        background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+        box-shadow: 0 10px 40px -10px rgba(59,130,246,.6);
+      }
+      h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
+      p { color: #9ca3af; font-size: .9rem; line-height: 1.5; }
+      a {
+        display: inline-block; margin-top: 1.25rem; padding: .6rem 1.25rem;
+        border-radius: 10px; color: #fff; text-decoration: none; font-weight: 600;
+        background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+      }
+      code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 6px; }
+    </style>
+    <script>
+      // Hard redirect as a fallback to the meta refresh.
+      window.location.replace("http://localhost:3000/");
+    </script>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">O</div>
+      <h1>Taking you to OLat5…</h1>
+      <p>
+        OLat5 runs on the dev server at <code>localhost:3000</code> — not Live
+        Server. If you're not redirected, make sure the dev server is running
+        (<code>npm run dev</code>) and open the link below.
+      </p>
+      <a href="http://localhost:3000/">Open OLat5 →</a>
+    </div>
+  </body>
+</html>
