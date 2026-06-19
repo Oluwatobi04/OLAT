@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"import\\('@tanstack/start-client-core'\\).then\\(m=>console.log\\(Object.keys\\(m\\).filter\\(k=>/erverRoute|erverFile/i.test\\(k\\)\\).join\\(', '\\)||'none'\\)\\)\")",
+      "Bash(node -e \"import\\('@tanstack/start-client-core'\\).then\\(m=>console.log\\(Object.keys\\(m\\).join\\(', '\\)\\)\\)\")",
+      "Bash(kill 9363)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(awk '/LISTEN/{print $2,$9}')"
+    ]
+  }
+}

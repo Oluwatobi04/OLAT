@@ -1,0 +1,346 @@
+// OLat5 — Prisma schema
+// AI-powered interview & meeting copilot SaaS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ──────────────────────────────── IDENTITY ────────────────────────────────
+
+// Mirrors Supabase auth.users (id = auth user uuid). Application-owned row.
+model User {
+  id            String     @id @db.Uuid
+  email         String     @unique
+  emailVerified DateTime?  @map("email_verified")
+  status        UserStatus @default(ACTIVE)
+  lastLoginAt   DateTime?  @map("last_login_at")
+
+  profile       Profile?
+  memberships   Membership[]
+  ownedOrgs     Organization[] @relation("OrgOwner")
+  sessions      Session[]
+  aiUsage       AiUsage[]
+  auditLogs     AuditLog[]     @relation("AuditActor")
+
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+
+  @@map("user_status")
+}
+
+model Profile {
+  id          String  @id @default(uuid()) @db.Uuid
+  userId      String  @unique @map("user_id") @db.Uuid
+  fullName    String? @map("full_name")
+  avatarUrl   String? @map("avatar_url")
+  jobTitle    String? @map("job_title")
+  company     String?
+  timezone    String  @default("UTC")
+  locale      String  @default("en")
+  onboardedAt DateTime? @map("onboarded_at")
+
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+// ──────────────────────────────── TENANCY ────────────────────────────────
+
+model Organization {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String   @unique
+  ownerId          String   @map("owner_id") @db.Uuid
+  stripeCustomerId String?  @unique @map("stripe_customer_id")
+  billingEmail     String?  @map("billing_email")
+
+  owner        User          @relation("OrgOwner", fields: [ownerId], references: [id])
+  teams        Team[]
+  memberships  Membership[]
+  subscription Subscription?
+  invoices     Invoice[]
+  sessions     Session[]
+  aiUsage      AiUsage[]
+  auditLogs    AuditLog[]
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Team {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("teams")
+}
+
+model Membership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  teamId         String?          @map("team_id") @db.Uuid
+  role           Role             @default(MEMBER)
+  status         MembershipStatus @default(ACTIVE)
+  invitedEmail   String?          @map("invited_email")
+  inviteToken    String?          @unique @map("invite_token")
+  invitedAt      DateTime?        @map("invited_at")
+  acceptedAt     DateTime?        @map("accepted_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId, role])
+  @@index([teamId])
+  @@map("memberships")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  BILLING
+
+  @@map("role")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+
+  @@map("membership_status")
+}
+
+// ──────────────────────────────── BILLING ────────────────────────────────
+
+model Subscription {
+  id                   String           @id @default(uuid()) @db.Uuid
+  organizationId       String           @unique @map("organization_id") @db.Uuid
+  stripeSubscriptionId String?          @unique @map("stripe_subscription_id")
+  stripePriceId        String?          @map("stripe_price_id")
+  plan                 PlanTier         @default(FREE)
+  interval             BillingInterval  @default(MONTHLY)
+  status               SubscriptionStatus @default(ACTIVE)
+  seats                Int              @default(1)
+  currentPeriodStart   DateTime?        @map("current_period_start")
+  currentPeriodEnd     DateTime?        @map("current_period_end")
+  cancelAtPeriodEnd    Boolean          @default(false) @map("cancel_at_period_end")
+  trialEndsAt          DateTime?        @map("trial_ends_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@map("subscriptions")
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+
+  @@map("plan_tier")
+}
+
+enum BillingInterval {
+  MONTHLY
+  ANNUAL
+
+  @@map("billing_interval")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+
+  @@map("subscription_status")
+}
+
+model Invoice {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  stripeInvoiceId String?  @unique @map("stripe_invoice_id")
+  number          String?
+  amountDue       Int      @default(0) @map("amount_due")
+  amountPaid      Int      @default(0) @map("amount_paid")
+  currency        String   @default("usd")
+  status          String   @default("draft")
+  hostedInvoiceUrl String? @map("hosted_invoice_url")
+  invoicePdf      String?  @map("invoice_pdf")
+  periodStart     DateTime? @map("period_start")
+  periodEnd       DateTime? @map("period_end")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@map("invoices")
+}
+
+// ──────────────────────────────── PRODUCT CORE ────────────────────────────────
+
+model Session {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  title          String?
+  mode           SessionMode   @default(MEETING)
+  platform       String?
+  status         SessionStatus @default(LIVE)
+  language       String        @default("en")
+  startedAt      DateTime      @default(now()) @map("started_at")
+  endedAt        DateTime?     @map("ended_at")
+  durationSec    Int?          @map("duration_sec")
+  summary        String?
+  metadata       Json?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transcripts  Transcript[]
+  aiUsage      AiUsage[]
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId, startedAt])
+  @@index([userId, status])
+  @@map("sessions")
+}
+
+enum SessionMode {
+  INTERVIEW
+  MEETING
+  COACHING
+  SALES
+  GENERIC
+
+  @@map("session_mode")
+}
+
+enum SessionStatus {
+  LIVE
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("session_status")
+}
+
+model Transcript {
+  id          String   @id @default(uuid()) @db.Uuid
+  sessionId   String   @map("session_id") @db.Uuid
+  speaker     String?
+  speakerRole String?  @map("speaker_role")
+  text        String
+  startMs     Int      @map("start_ms")
+  endMs       Int      @map("end_ms")
+  confidence  Float?
+  isFinal     Boolean  @default(true) @map("is_final")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId, startMs])
+  @@map("transcripts")
+}
+
+model AiUsage {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  userId         String?     @map("user_id") @db.Uuid
+  sessionId      String?     @map("session_id") @db.Uuid
+  metric         UsageMetric
+  model          String?
+  quantity       Int         @default(0)
+  promptTokens   Int         @default(0) @map("prompt_tokens")
+  completionTokens Int       @default(0) @map("completion_tokens")
+  occurredAt     DateTime    @default(now()) @map("occurred_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session      Session?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, occurredAt])
+  @@index([metric, occurredAt])
+  @@map("ai_usage")
+}
+
+enum UsageMetric {
+  TRANSCRIPTION_MINUTES
+  AI_TOKENS
+  SESSION_COUNT
+  API_CALLS
+
+  @@map("usage_metric")
+}
+
+// ──────────────────────────────── AUDIT ────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  actorId        String?  @map("actor_id") @db.Uuid
+  action         String
+  target         String?
+  ip             String?
+  userAgent      String?  @map("user_agent")
+  metadata       Json?
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor        User?         @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@index([actorId])
+  @@map("audit_logs")
+}

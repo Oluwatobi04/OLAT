@@ -1,0 +1,49 @@
+import {
+  Outlet,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+} from "@tanstack/react-router";
+import { Toaster } from "sonner";
+import type { ReactNode } from "react";
+import appCss from "~/styles/app.css?url";
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "OLat5 — AI Interview & Meeting Copilot" },
+      {
+        name: "description",
+        content:
+          "OLat5 is an AI-powered copilot for interviews and meetings: real-time transcription, summaries, and coaching.",
+      },
+    ],
+    links: [{ rel: "stylesheet", href: appCss }],
+  }),
+  component: RootComponent,
+});
+
+function RootComponent() {
+  return (
+    <RootDocument>
+      <Outlet />
+      <Toaster richColors position="top-right" />
+    </RootDocument>
+  );
+}
+
+function RootDocument({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" className="h-full">
+      <head>
+        <HeadContent />
+      </head>
+      <body className="h-full min-h-screen bg-background text-foreground antialiased">
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  );
+}

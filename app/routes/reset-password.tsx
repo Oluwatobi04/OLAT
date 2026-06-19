@@ -1,0 +1,69 @@
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { AuthShell } from "~/components/auth/auth-shell";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { updatePasswordFn } from "~/server/auth";
+
+export const Route = createFileRoute("/reset-password")({
+  component: ResetPasswordPage,
+});
+
+function ResetPasswordPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const confirm = String(form.get("confirm") ?? "");
+    const parsed = z.string().min(8).safeParse(password);
+    if (!parsed.success) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await updatePasswordFn({ data: { password } });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Password updated");
+      await router.navigate({ to: "/dashboard" });
+    } catch {
+      toast.error("Could not update password");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <AuthShell
+      title="Set a new password"
+      subtitle="Choose a strong password you haven't used before."
+    >
+      <form className="space-y-4" onSubmit={onSubmit}>
+        <div className="space-y-2">
+          <Label htmlFor="password">New password</Label>
+          <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm">Confirm password</Label>
+          <Input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
+        </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Updating..." : "Update password"}
+        </Button>
+      </form>
+    </AuthShell>
+  );
+}

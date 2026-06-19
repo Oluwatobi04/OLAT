@@ -1,0 +1,37 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/Users/mac/.local/node/bin/node",
+      "runtimeArgs": [
+        "/Users/mac/projecy/node_modules/vite/bin/vite.js",
+        "dev",
+        "--host",
+        "--port",
+        "3000"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "start",
+      "runtimeExecutable": "/Users/mac/.local/node/bin/node",
+      "runtimeArgs": [
+        "--env-file-if-exists=.env",
+        "/Users/mac/projecy/serve.mjs"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "prisma-studio",
+      "runtimeExecutable": "/Users/mac/.local/node/bin/node",
+      "runtimeArgs": [
+        "/Users/mac/projecy/node_modules/prisma/build/index.js",
+        "studio",
+        "--port",
+        "5555"
+      ],
+      "port": 5555
+    }
+  ]
+}
