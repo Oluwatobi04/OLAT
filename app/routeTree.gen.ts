@@ -22,7 +22,12 @@ import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhoo
 import { Route as AppDashboardTeamRouteImport } from './routes/_app.dashboard.team'
 import { Route as AppDashboardSettingsRouteImport } from './routes/_app.dashboard.settings'
 import { Route as AppDashboardSessionsRouteImport } from './routes/_app.dashboard.sessions'
+import { Route as AppDashboardResumeRouteImport } from './routes/_app.dashboard.resume'
 import { Route as AppDashboardOrganizationRouteImport } from './routes/_app.dashboard.organization'
+import { Route as AppDashboardMockRouteImport } from './routes/_app.dashboard.mock'
+import { Route as AppDashboardJobDescriptionsRouteImport } from './routes/_app.dashboard.job-descriptions'
+import { Route as AppDashboardInterviewPrepRouteImport } from './routes/_app.dashboard.interview-prep'
+import { Route as AppDashboardCreditsRouteImport } from './routes/_app.dashboard.credits'
 import { Route as AppDashboardBillingRouteImport } from './routes/_app.dashboard.billing'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -89,12 +94,39 @@ const AppDashboardSessionsRoute = AppDashboardSessionsRouteImport.update({
   path: '/dashboard/sessions',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardResumeRoute = AppDashboardResumeRouteImport.update({
+  id: '/dashboard/resume',
+  path: '/dashboard/resume',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardOrganizationRoute =
   AppDashboardOrganizationRouteImport.update({
     id: '/dashboard/organization',
     path: '/dashboard/organization',
     getParentRoute: () => AppRoute,
   } as any)
+const AppDashboardMockRoute = AppDashboardMockRouteImport.update({
+  id: '/dashboard/mock',
+  path: '/dashboard/mock',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardJobDescriptionsRoute =
+  AppDashboardJobDescriptionsRouteImport.update({
+    id: '/dashboard/job-descriptions',
+    path: '/dashboard/job-descriptions',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppDashboardInterviewPrepRoute =
+  AppDashboardInterviewPrepRouteImport.update({
+    id: '/dashboard/interview-prep',
+    path: '/dashboard/interview-prep',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppDashboardCreditsRoute = AppDashboardCreditsRouteImport.update({
+  id: '/dashboard/credits',
+  path: '/dashboard/credits',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardBillingRoute = AppDashboardBillingRouteImport.update({
   id: '/dashboard/billing',
   path: '/dashboard/billing',
@@ -110,7 +142,12 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
+  '/dashboard/credits': typeof AppDashboardCreditsRoute
+  '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
+  '/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/dashboard/mock': typeof AppDashboardMockRoute
   '/dashboard/organization': typeof AppDashboardOrganizationRoute
+  '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
@@ -126,7 +163,12 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
+  '/dashboard/credits': typeof AppDashboardCreditsRoute
+  '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
+  '/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/dashboard/mock': typeof AppDashboardMockRoute
   '/dashboard/organization': typeof AppDashboardOrganizationRoute
+  '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
@@ -144,7 +186,12 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/dashboard/billing': typeof AppDashboardBillingRoute
+  '/_app/dashboard/credits': typeof AppDashboardCreditsRoute
+  '/_app/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
+  '/_app/dashboard/job-descriptions': typeof AppDashboardJobDescriptionsRoute
+  '/_app/dashboard/mock': typeof AppDashboardMockRoute
   '/_app/dashboard/organization': typeof AppDashboardOrganizationRoute
+  '/_app/dashboard/resume': typeof AppDashboardResumeRoute
   '/_app/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/_app/dashboard/settings': typeof AppDashboardSettingsRoute
   '/_app/dashboard/team': typeof AppDashboardTeamRoute
@@ -162,7 +209,12 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/auth/callback'
     | '/dashboard/billing'
+    | '/dashboard/credits'
+    | '/dashboard/interview-prep'
+    | '/dashboard/job-descriptions'
+    | '/dashboard/mock'
     | '/dashboard/organization'
+    | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
     | '/dashboard/team'
@@ -178,7 +230,12 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/auth/callback'
     | '/dashboard/billing'
+    | '/dashboard/credits'
+    | '/dashboard/interview-prep'
+    | '/dashboard/job-descriptions'
+    | '/dashboard/mock'
     | '/dashboard/organization'
+    | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
     | '/dashboard/team'
@@ -195,7 +252,12 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/auth/callback'
     | '/_app/dashboard/billing'
+    | '/_app/dashboard/credits'
+    | '/_app/dashboard/interview-prep'
+    | '/_app/dashboard/job-descriptions'
+    | '/_app/dashboard/mock'
     | '/_app/dashboard/organization'
+    | '/_app/dashboard/resume'
     | '/_app/dashboard/sessions'
     | '/_app/dashboard/settings'
     | '/_app/dashboard/team'
@@ -308,11 +370,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardSessionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/dashboard/resume': {
+      id: '/_app/dashboard/resume'
+      path: '/dashboard/resume'
+      fullPath: '/dashboard/resume'
+      preLoaderRoute: typeof AppDashboardResumeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard/organization': {
       id: '/_app/dashboard/organization'
       path: '/dashboard/organization'
       fullPath: '/dashboard/organization'
       preLoaderRoute: typeof AppDashboardOrganizationRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard/mock': {
+      id: '/_app/dashboard/mock'
+      path: '/dashboard/mock'
+      fullPath: '/dashboard/mock'
+      preLoaderRoute: typeof AppDashboardMockRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard/job-descriptions': {
+      id: '/_app/dashboard/job-descriptions'
+      path: '/dashboard/job-descriptions'
+      fullPath: '/dashboard/job-descriptions'
+      preLoaderRoute: typeof AppDashboardJobDescriptionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard/interview-prep': {
+      id: '/_app/dashboard/interview-prep'
+      path: '/dashboard/interview-prep'
+      fullPath: '/dashboard/interview-prep'
+      preLoaderRoute: typeof AppDashboardInterviewPrepRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard/credits': {
+      id: '/_app/dashboard/credits'
+      path: '/dashboard/credits'
+      fullPath: '/dashboard/credits'
+      preLoaderRoute: typeof AppDashboardCreditsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard/billing': {
@@ -327,7 +424,12 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDashboardBillingRoute: typeof AppDashboardBillingRoute
+  AppDashboardCreditsRoute: typeof AppDashboardCreditsRoute
+  AppDashboardInterviewPrepRoute: typeof AppDashboardInterviewPrepRoute
+  AppDashboardJobDescriptionsRoute: typeof AppDashboardJobDescriptionsRoute
+  AppDashboardMockRoute: typeof AppDashboardMockRoute
   AppDashboardOrganizationRoute: typeof AppDashboardOrganizationRoute
+  AppDashboardResumeRoute: typeof AppDashboardResumeRoute
   AppDashboardSessionsRoute: typeof AppDashboardSessionsRoute
   AppDashboardSettingsRoute: typeof AppDashboardSettingsRoute
   AppDashboardTeamRoute: typeof AppDashboardTeamRoute
@@ -336,7 +438,12 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardBillingRoute: AppDashboardBillingRoute,
+  AppDashboardCreditsRoute: AppDashboardCreditsRoute,
+  AppDashboardInterviewPrepRoute: AppDashboardInterviewPrepRoute,
+  AppDashboardJobDescriptionsRoute: AppDashboardJobDescriptionsRoute,
+  AppDashboardMockRoute: AppDashboardMockRoute,
   AppDashboardOrganizationRoute: AppDashboardOrganizationRoute,
+  AppDashboardResumeRoute: AppDashboardResumeRoute,
   AppDashboardSessionsRoute: AppDashboardSessionsRoute,
   AppDashboardSettingsRoute: AppDashboardSettingsRoute,
   AppDashboardTeamRoute: AppDashboardTeamRoute,

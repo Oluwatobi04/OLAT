@@ -2,6 +2,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Mic,
+  FileText,
+  Briefcase,
+  ClipboardList,
+  MessagesSquare,
+  Coins,
   Users,
   Building2,
   CreditCard,
@@ -12,7 +17,12 @@ import { cn } from "~/lib/utils";
 
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { to: "/dashboard/sessions", label: "Sessions", icon: Mic },
+  { to: "/dashboard/resume", label: "Resume Analyzer", icon: FileText },
+  { to: "/dashboard/job-descriptions", label: "Job Descriptions", icon: Briefcase },
+  { to: "/dashboard/interview-prep", label: "Interview Prep", icon: ClipboardList },
+  { to: "/dashboard/mock", label: "Mock Interviews", icon: MessagesSquare },
+  { to: "/dashboard/sessions", label: "Live Sessions", icon: Mic },
+  { to: "/dashboard/credits", label: "Credits", icon: Coins },
   { to: "/dashboard/team", label: "Team", icon: Users },
   { to: "/dashboard/organization", label: "Organization", icon: Building2 },
   { to: "/dashboard/billing", label: "Billing", icon: CreditCard },

@@ -15,6 +15,18 @@ const schema = z.object({
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+  // OpenRouter (multi-model AI)
+  OPENROUTER_API_KEY: z.string().min(1).optional(),
+  OPENROUTER_MODEL: z.string().default("openai/gpt-4o-mini"),
+  // Deepgram (live transcription)
+  DEEPGRAM_API_KEY: z.string().min(1).optional(),
+  // Flutterwave
+  FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
+  FLUTTERWAVE_SECRET_KEY: z.string().optional(),
+  FLUTTERWAVE_ENCRYPTION_KEY: z.string().optional(),
+  // Cryptomus
+  CRYPTOMUS_API_KEY: z.string().optional(),
+  CRYPTOMUS_MERCHANT_ID: z.string().optional(),
 });
 
 // Parse lazily and tolerate missing values in dev so the app can boot for UI work.

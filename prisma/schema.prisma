@@ -344,3 +344,167 @@ model AuditLog {
   @@index([actorId])
   @@map("audit_logs")
 }
+
+// ──────────────────────────── CREDIT SYSTEM ────────────────────────────
+
+model CreditBalance {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @map("user_id") @db.Uuid
+  organizationId    String?  @map("organization_id") @db.Uuid
+  currentBalance    Int      @default(10) @map("current_balance")
+  monthlyAllocation Int      @default(10) @map("monthly_allocation")
+  planType          String   @default("FREE") @map("plan_type")
+  lastResetAt       DateTime @default(now()) @map("last_reset_at")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("credit_balances")
+}
+
+model CreditTransaction {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  organizationId   String?  @map("organization_id") @db.Uuid
+  actionType       String   @map("action_type")
+  creditsUsed      Int      @map("credits_used")
+  remainingBalance Int      @map("remaining_balance")
+  direction        String   @default("DEBIT") // DEBIT | CREDIT
+  metadata         Json?
+
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("credit_transactions")
+}
+
+// ──────────────────────────── RESUME ANALYZER ────────────────────────────
+
+model ResumeUpload {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  fileName       String   @map("file_name")
+  fileUrl        String   @map("file_url")
+  storagePath    String?  @map("storage_path")
+  extractedText  String?  @map("extracted_text")
+  parsed         Json?    // { skills, experience, education, certifications, projects }
+  analysis       Json?    // { strengths, weaknesses, missingSkills, atsRecommendations, suggestions }
+  resumeScore    Int?     @map("resume_score")
+  atsScore       Int?     @map("ats_score")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("resume_uploads")
+}
+
+// ──────────────────────────── JOB DESCRIPTION ────────────────────────────
+
+model JobDescription {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  title          String
+  company        String?
+  content        String
+  analysis       Json?    // { requiredSkills, responsibilities, keywords, skillMatchPct }
+  skillMatchPct  Int?     @map("skill_match_pct")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("job_descriptions")
+}
+
+// ──────────────────────────── INTERVIEW PREP ────────────────────────────
+
+model InterviewPrep {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @map("user_id") @db.Uuid
+  organizationId      String?  @map("organization_id") @db.Uuid
+  resumeId            String?  @map("resume_id") @db.Uuid
+  jobDescriptionId    String?  @map("job_description_id") @db.Uuid
+  behavioralQuestions Json?    @map("behavioral_questions")
+  technicalQuestions  Json?    @map("technical_questions")
+  companyQuestions    Json?    @map("company_questions")
+  suggestedAnswers    Json?    @map("suggested_answers")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("interview_prep")
+}
+
+// ──────────────────────────── MOCK INTERVIEW ────────────────────────────
+
+model MockInterview {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  organizationId    String?  @map("organization_id") @db.Uuid
+  jobDescriptionId  String?  @map("job_description_id") @db.Uuid
+  resumeId          String?  @map("resume_id") @db.Uuid
+  status            String   @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED
+  questions         Json?    // [{ question, type }]
+  responses         Json?    // [{ question, answer, evaluation }]
+  communicationScore Int?    @map("communication_score")
+  confidenceScore   Int?     @map("confidence_score")
+  technicalScore    Int?     @map("technical_score")
+  readinessScore    Int?     @map("readiness_score")
+  suggestions       Json?
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("mock_interviews")
+}
+
+// ──────────────────────────── AI ANALYSIS OUTPUTS ────────────────────────────
+
+model AiAnalysis {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  kind           String   // INTERVIEW_SUMMARY | FOLLOW_UP_EMAIL | MEETING_SUMMARY | ATS_OPTIMIZATION | SKILL_GAP | COACHING_REPORT | PERFORMANCE_REPORT
+  sessionId      String?  @map("session_id") @db.Uuid
+  resumeId       String?  @map("resume_id") @db.Uuid
+  jobDescriptionId String? @map("job_description_id") @db.Uuid
+  model          String?
+  input          Json?
+  output         Json?
+  content        String?
+
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([userId, kind, createdAt])
+  @@map("ai_analyses")
+}
+
+// ──────────────────────────── PAYMENTS ────────────────────────────
+
+model Payment {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  provider       String   // FLUTTERWAVE | CRYPTOMUS
+  reference      String   @unique
+  plan           String
+  amount         Int      // minor units
+  currency       String   @default("USD")
+  status         String   @default("PENDING") // PENDING | SUCCESS | FAILED
+  cryptoAsset    String?  @map("crypto_asset")
+  raw            Json?
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("payments")
+}
