@@ -13,7 +13,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
 import { Progress } from "~/components/ui/progress";
-import { formatDate } from "~/lib/utils";
+import { formatDate, friendlyError } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/job-descriptions")({
   loader: () => listJobDescriptionsFn(),
@@ -44,7 +44,7 @@ function JobDescPage() {
         },
       });
       if (!res.ok) {
-        toast.error(res.error === "INSUFFICIENT_CREDITS" ? "Not enough credits (need 1)" : res.error);
+        toast.error(friendlyError(res.error));
         return;
       }
       toast.success("Job description analyzed (−1 credit)");

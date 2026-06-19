@@ -10,8 +10,11 @@ export default {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "SF Pro Display", "sans-serif"],
+      },
       colors: {
-        border: "hsl(var(--border))",
+        border: "rgba(255,255,255,0.08)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -44,6 +47,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        cyan: { DEFAULT: "hsl(var(--cyan))" },
+        success: { DEFAULT: "hsl(var(--success))" },
+        warning: { DEFAULT: "hsl(var(--warning))" },
+      },
+      backgroundImage: {
+        "brand-gradient": "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
+        "brand-gradient-tri": "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #06B6D4 100%)",
       },
       borderRadius: {
         lg: "var(--radius)",

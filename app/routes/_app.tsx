@@ -22,15 +22,17 @@ function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-muted/20">
+    <div className="bg-aurora flex min-h-screen bg-background">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopNav
-          onMenuClick={() => setSidebarOpen(true)}
-          user={auth.user}
-          organization={auth.organization}
-        />
-        <main className="flex-1 p-4 lg:p-8">
+      <div className="flex min-w-0 flex-1 flex-col px-3 pb-4 lg:px-4">
+        <div className="pt-3">
+          <TopNav
+            onMenuClick={() => setSidebarOpen(true)}
+            user={auth.user}
+            organization={auth.organization}
+          />
+        </div>
+        <main className="flex-1 py-6 lg:py-8">
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />
           </div>

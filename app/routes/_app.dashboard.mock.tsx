@@ -14,7 +14,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
 import { Progress } from "~/components/ui/progress";
-import { formatDate } from "~/lib/utils";
+import { formatDate, friendlyError } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/mock")({
   loader: async () => {
@@ -48,7 +48,7 @@ function MockPage() {
         },
       });
       if (!res.ok) {
-        toast.error(res.error === "INSUFFICIENT_CREDITS" ? "Not enough credits (need 3)" : res.error);
+        toast.error(friendlyError(res.error));
         return;
       }
       setActive({ id: res.id, questions: res.questions });

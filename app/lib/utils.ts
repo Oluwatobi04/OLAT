@@ -31,6 +31,18 @@ export function formatDate(date: Date | string | null | undefined): string {
   }).format(d);
 }
 
+// Maps server error codes to user-facing messages.
+export function friendlyError(code: string): string {
+  switch (code) {
+    case "AI_NOT_CONFIGURED":
+      return "AI isn't configured yet. Add an OpenRouter API key (OPENROUTER_API_KEY) to enable AI features.";
+    case "INSUFFICIENT_CREDITS":
+      return "You don't have enough credits for this action. Upgrade your plan to get more.";
+    default:
+      return code || "Something went wrong. Please try again.";
+  }
+}
+
 export function initials(name: string | null | undefined, email: string): string {
   if (name) {
     const parts = name.trim().split(/\s+/);

@@ -4,7 +4,7 @@ import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
 import { uploadResumeFile } from "~/lib/storage.server";
 import { detectDocType, extractResumeText } from "~/lib/parse.server";
-import { aiJSON } from "~/lib/ai.server";
+import { aiJSON, isAIConfigured } from "~/lib/ai.server";
 import {
   checkCreditBalance,
   deductCredits,
@@ -49,6 +49,8 @@ export const analyzeResumeFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const auth = await requireAuth();
     const orgId = auth.organization?.id ?? null;
+
+    if (!isAIConfigured()) return { ok: false as const, error: "AI_NOT_CONFIGURED" };
 
     const balance = await checkCreditBalance(auth.userId);
     if (balance < CREDIT_COSTS.RESUME_ANALYSIS) {

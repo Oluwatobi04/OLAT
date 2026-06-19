@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Progress } from "~/components/ui/progress";
-import { formatDate } from "~/lib/utils";
+import { formatDate, friendlyError } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/resume")({
   loader: () => listResumesFn(),
@@ -41,7 +41,7 @@ function ResumePage() {
     try {
       const res = await analyzeResumeFn({ data: fd });
       if (!res.ok) {
-        toast.error(res.error === "INSUFFICIENT_CREDITS" ? "Not enough credits (need 1)" : res.error);
+        toast.error(friendlyError(res.error));
         return;
       }
       toast.success("Resume analyzed (−1 credit)");

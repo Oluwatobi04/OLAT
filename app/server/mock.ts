@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
-import { aiJSON } from "~/lib/ai.server";
+import { aiJSON, isAIConfigured } from "~/lib/ai.server";
 import {
   checkCreditBalance,
   deductCredits,
@@ -39,6 +39,7 @@ export const startMockInterviewFn = createServerFn({ method: "POST" })
     const auth = await requireAuth();
     const orgId = auth.organization?.id ?? null;
 
+    if (!isAIConfigured()) return { ok: false as const, error: "AI_NOT_CONFIGURED" };
     if ((await checkCreditBalance(auth.userId)) < CREDIT_COSTS.MOCK_INTERVIEW) {
       return { ok: false as const, error: "INSUFFICIENT_CREDITS" };
     }

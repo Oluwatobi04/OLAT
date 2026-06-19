@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
-import { formatDate } from "~/lib/utils";
+import { formatDate, friendlyError } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/interview-prep")({
   loader: async () => {
@@ -56,7 +56,7 @@ function InterviewPrepPage() {
         },
       });
       if (!res.ok) {
-        toast.error(res.error === "INSUFFICIENT_CREDITS" ? "Not enough credits (need 1)" : res.error);
+        toast.error(friendlyError(res.error));
         return;
       }
       toast.success("Questions generated (−1 credit)");
@@ -73,7 +73,7 @@ function InterviewPrepPage() {
     try {
       const res = await generateAnswersFn({ data: { prepId } });
       if (!res.ok) {
-        toast.error(res.error === "INSUFFICIENT_CREDITS" ? "Not enough credits (need 1)" : res.error);
+        toast.error(friendlyError(res.error));
         return;
       }
       toast.success("Suggested answers generated (−1 credit)");

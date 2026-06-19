@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
-import { aiComplete } from "~/lib/ai.server";
+import { aiComplete, isAIConfigured } from "~/lib/ai.server";
 import {
   checkCreditBalance,
   deductCredits,
@@ -95,6 +95,7 @@ export const runAnalysisFn = createServerFn({ method: "POST" })
     const kind = data.kind as Kind;
     const cfg = KINDS[kind];
 
+    if (!isAIConfigured()) return { ok: false as const, error: "AI_NOT_CONFIGURED" };
     if ((await checkCreditBalance(auth.userId)) < CREDIT_COSTS[cfg.action]) {
       return { ok: false as const, error: "INSUFFICIENT_CREDITS" };
     }

@@ -30,6 +30,11 @@ export class AIServiceError extends Error {
   }
 }
 
+// True when an OpenRouter API key is present. AI features are disabled without it.
+export function isAIConfigured(): boolean {
+  return Boolean(OPENROUTER_API_KEY);
+}
+
 function resolveModel(model?: ModelAlias | string): string {
   if (!model) return OPENROUTER_MODEL;
   if (model in MODELS) return MODELS[model as ModelAlias];
