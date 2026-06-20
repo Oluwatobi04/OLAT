@@ -20,7 +20,10 @@ export const Route = createRootRoute({
           "OLat5 is an AI-powered copilot for interviews and meetings: real-time transcription, summaries, and coaching.",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/olat5-logo.png" },
+    ],
   }),
   component: RootComponent,
 });

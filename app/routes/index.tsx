@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Logo } from "~/components/brand/logo";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -34,11 +35,8 @@ function LandingPage() {
 
       <header className="relative z-10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5 font-bold">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/30">
-              O
-            </span>
-            <span className="text-lg tracking-tight">OLat5</span>
+          <Link to="/" className="flex items-center">
+            <Logo height={34} />
           </Link>
           <nav className="flex items-center gap-2">
             <Button variant="ghost" asChild>
@@ -246,10 +244,7 @@ function LandingPage() {
 
       <footer className="relative z-10 border-t border-white/5 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] text-xs font-bold text-white">O</span>
-            OLat5
-          </div>
+          <Logo height={24} />
           <p>© {new Date().getFullYear()} OLat5. All rights reserved.</p>
         </div>
       </footer>

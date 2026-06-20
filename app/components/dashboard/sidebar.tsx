@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { Logo } from "~/components/brand/logo";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -50,11 +51,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       >
         <div className="glass-strong flex h-full flex-col rounded-2xl">
           <div className="flex h-16 items-center justify-between px-4">
-            <Link to="/dashboard" className="flex items-center gap-2.5 font-bold">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/30">
-                O
-              </span>
-              <span className="text-lg tracking-tight">OLat5</span>
+            <Link to="/dashboard" className="flex items-center">
+              <Logo height={30} />
             </Link>
             <button
               className="rounded-md p-1 text-muted-foreground hover:bg-white/5 lg:hidden"
