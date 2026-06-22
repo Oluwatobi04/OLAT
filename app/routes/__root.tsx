@@ -7,6 +7,7 @@ import {
 import { Toaster } from "sonner";
 import type { ReactNode } from "react";
 import appCss from "~/styles/app.css?url";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -33,6 +34,7 @@ function RootComponent() {
     <RootDocument>
       <Outlet />
       <Toaster richColors position="top-right" />
+      <SpeedInsights />
     </RootDocument>
   );
 }
