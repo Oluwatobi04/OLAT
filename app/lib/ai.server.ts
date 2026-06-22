@@ -87,6 +87,39 @@ export async function aiComplete(opts: {
   return { content: res.choices[0]?.message?.content ?? "", model };
 }
 
+// Vision completion — sends an image (data URL or https URL) + instruction.
+// Used by the workspace "Analyze Screen" feature. Uses a vision-capable model.
+export async function aiVision(opts: {
+  system: string;
+  user: string;
+  imageUrl: string;
+  model?: string;
+  maxTokens?: number;
+}): Promise<{ content: string; model: string }> {
+  if (!OPENROUTER_API_KEY) {
+    throw new AIServiceError("OPENROUTER_API_KEY is not configured");
+  }
+  const model = opts.model || "openai/gpt-4o-mini";
+  const res = await withRetry(() =>
+    client.chat.completions.create({
+      model,
+      temperature: 0.3,
+      max_tokens: opts.maxTokens ?? 900,
+      messages: [
+        { role: "system", content: opts.system },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: opts.user },
+            { type: "image_url", image_url: { url: opts.imageUrl } },
+          ],
+        },
+      ],
+    }),
+  );
+  return { content: res.choices[0]?.message?.content ?? "", model };
+}
+
 // Strict JSON completion — instructs the model to return JSON and parses it.
 export async function aiJSON<T>(opts: {
   system: string;

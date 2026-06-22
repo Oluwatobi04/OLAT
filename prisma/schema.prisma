@@ -241,9 +241,11 @@ model Session {
   durationSec    Int?          @map("duration_sec")
   summary        String?
   metadata       Json?
+  interviewContextId String?   @map("interview_context_id") @db.Uuid
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviewContext InterviewContext? @relation(fields: [interviewContextId], references: [id], onDelete: SetNull)
   transcripts  Transcript[]
   aiUsage      AiUsage[]
 
@@ -419,6 +421,33 @@ model JobDescription {
 
   @@index([userId, createdAt])
   @@map("job_descriptions")
+}
+
+// ──────────────────────────── INTERVIEW CONTEXT ────────────────────────────
+
+// Universal interview context for any lawful profession. Captured before a
+// session and injected into every AI prompt so suggestions adapt to the user's
+// actual role, company, and industry — never assuming a tech career.
+model InterviewContext {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  organizationId     String?  @map("organization_id") @db.Uuid
+  role               String
+  company            String?
+  industry           String?
+  resumeId           String?  @map("resume_id") @db.Uuid
+  jobDescriptionId   String?  @map("job_description_id") @db.Uuid
+  resumeText         String?  @map("resume_text")
+  jobDescriptionText String?  @map("job_description_text")
+  generatedContext   String?  @map("generated_context")
+
+  sessions Session[]
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("interview_contexts")
 }
 
 // ──────────────────────────── INTERVIEW PREP ────────────────────────────

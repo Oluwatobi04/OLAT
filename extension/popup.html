@@ -3,44 +3,94 @@
   <head>
     <meta charset="utf-8" />
     <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
       body {
-        width: 300px; margin: 0; padding: 16px;
-        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #0a0a0a; color: #e5e7eb;
+        width: 328px; margin: 0; padding: 0;
+        font-family: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #f4f6fb;
+        background: radial-gradient(120% 80% at 0% 0%, #15182a 0%, #0b0e18 60%);
+        -webkit-font-smoothing: antialiased;
       }
-      .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 14px; }
-      .logo { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center;
-        justify-content: center; color: #fff; font-weight: 800;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
-      input { width: 100%; box-sizing: border-box; margin-bottom: 8px; padding: 9px 10px;
-        border-radius: 9px; border: 1px solid rgba(255,255,255,.12); background: #111827; color: #fff; }
-      button { width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer;
-        font-weight: 600; color: #fff; background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
-      button.secondary { background: rgba(255,255,255,.08); }
-      .row { display: flex; gap: 8px; margin-top: 8px; }
-      .msg { font-size: 12px; color: #9ca3af; margin: 8px 0; min-height: 16px; }
+      .head {
+        display: flex; align-items: center; gap: 10px; padding: 16px;
+        background: linear-gradient(100deg, rgba(59,130,246,.18), rgba(139,92,246,.16), rgba(6,182,212,.12));
+        border-bottom: 1px solid rgba(255,255,255,.08);
+      }
+      .falcon { width: 34px; height: 34px; border-radius: 10px; filter: drop-shadow(0 3px 8px rgba(59,130,246,.55)); }
+      .brand-name { font-weight: 800; font-size: 16px; letter-spacing: .2px; line-height: 1; }
+      .brand-tag { font-size: 11px; color: #aab3c9; margin-top: 2px; }
+      .wrap { padding: 16px; }
+      input {
+        width: 100%; margin-bottom: 9px; padding: 11px 12px; border-radius: 10px;
+        border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #fff; font-size: 14px;
+      }
+      input:focus { outline: none; border-color: rgba(139,92,246,.6); }
+      button {
+        width: 100%; padding: 11px; border: none; border-radius: 11px; cursor: pointer;
+        font-weight: 700; font-size: 14px; color: #fff;
+        background: linear-gradient(100deg, #3b82f6, #8b5cf6 55%, #06b6d4);
+        box-shadow: 0 8px 22px -10px rgba(99,102,241,.8); transition: transform .15s, filter .15s;
+      }
+      button:hover { transform: translateY(-1px); filter: brightness(1.07); }
+      button.secondary { background: rgba(255,255,255,.08); box-shadow: none; font-weight: 600; }
+      .row { display: flex; gap: 8px; margin-top: 9px; }
+      .msg { font-size: 12px; color: #9ca3af; margin: 10px 0 0; min-height: 16px; }
       .hidden { display: none; }
-      .who { font-size: 12px; color: #cbd5e1; margin-bottom: 10px; }
+      .who { font-size: 12.5px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+      .credits-card {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px;
+      }
+      .stat {
+        background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+        border-radius: 12px; padding: 10px 8px; text-align: center;
+      }
+      .stat .n { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .stat .n.grad { background: linear-gradient(100deg,#60a5fa,#a78bfa,#22d3ee); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+      .stat .k { font-size: 9.5px; color: #93a0bd; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
     </style>
   </head>
   <body>
-    <div class="brand"><span class="logo">O</span> OLat5 Copilot</div>
-
-    <div id="login-view">
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password" />
-      <button id="login-btn">Log in</button>
-      <div class="msg" id="login-msg"></div>
+    <div class="head">
+      <svg viewBox="0 0 128 128" class="falcon" aria-hidden="true">
+        <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient></defs>
+        <rect x="2" y="2" width="124" height="124" rx="30" fill="url(#pg)"/>
+        <g fill="#fff">
+          <path d="M64 40 C50 40 36 48 24 68 C40 62 50 62 60 66 C52 70 46 78 42 90 C56 78 64 74 64 74 Z"/>
+          <path d="M64 40 C78 40 92 48 104 68 C88 62 78 62 68 66 C76 70 82 78 86 90 C72 78 64 74 64 74 Z"/>
+          <path d="M64 34 C69 34 73 38 73 44 C73 49 70 52 66 53 L78 58 L66 59 C66 66 64 74 64 74 C64 74 62 66 62 59 L50 58 L62 53 C58 52 55 49 55 44 C55 38 59 34 64 34 Z"/>
+        </g>
+      </svg>
+      <div>
+        <div class="brand-name">OLat5</div>
+        <div class="brand-tag">AI Interview Copilot</div>
+      </div>
     </div>
 
-    <div id="session-view" class="hidden">
-      <div class="who" id="who"></div>
-      <button id="start-btn">Start Live Copilot</button>
-      <div class="row">
-        <button id="dashboard-btn" class="secondary">Dashboard</button>
-        <button id="logout-btn" class="secondary">Log out</button>
+    <div class="wrap">
+      <div id="login-view">
+        <input id="email" type="email" placeholder="Email" autocomplete="username" />
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+        <button id="login-btn">Log in</button>
+        <div class="msg" id="login-msg"></div>
       </div>
-      <div class="msg" id="session-msg"></div>
+
+      <div id="session-view" class="hidden">
+        <div class="who" id="who"></div>
+        <div class="credits-card">
+          <div class="stat"><div class="n grad" id="c-left">—</div><div class="k">Left</div></div>
+          <div class="stat"><div class="n" id="c-used">—</div><div class="k">Used</div></div>
+          <div class="stat"><div class="n" id="c-plan" style="font-size:14px;line-height:32px">—</div><div class="k">Plan</div></div>
+        </div>
+        <button id="start-btn">Start Live Copilot</button>
+        <div class="row">
+          <button id="dashboard-btn" class="secondary">Dashboard</button>
+          <button id="logout-btn" class="secondary">Log out</button>
+        </div>
+        <div class="msg" id="session-msg"></div>
+      </div>
     </div>
 
     <script src="config.js"></script>

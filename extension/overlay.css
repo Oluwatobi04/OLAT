@@ -1,69 +1,224 @@
+/* OLat5 copilot overlay — premium glass UI.
+   Scoped under #olat5-overlay so it never leaks into the meeting page. */
+
 #olat5-overlay {
   position: fixed;
-  top: 80px;
-  right: 24px;
-  width: 360px;
-  max-height: 80vh;
+  top: 84px;
+  right: 20px;
   z-index: 2147483647;
-  display: flex;
-  flex-direction: column;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #e5e7eb;
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(16px);
+  width: 372px;
+  color: #f4f6fb;
+  font-family: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(17, 20, 34, 0.82), rgba(13, 16, 28, 0.9));
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 24px 70px -20px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  resize: both;
+  animation: olat5-in 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#olat5-overlay * { box-sizing: border-box; }
+#olat5-overlay.olat5-dragging { transition: none; }
+
+@keyframes olat5-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-#olat5-overlay .olat5-header {
+/* ── modes ───────────────────────────────────────────────────── */
+#olat5-overlay.olat5-focus {
+  width: 560px;
+  resize: both;
+  min-width: 500px;
+  max-width: 720px;
+  min-height: 320px;
+  overflow: auto;
+}
+#olat5-overlay.olat5-focus .olat5-body { max-height: none; }
+#olat5-overlay.olat5-focus .olat5-grid { grid-template-columns: 1fr 1fr; }
+#olat5-overlay.olat5-focus .olat5-answer { font-size: 19px; }
+
+/* ── header ──────────────────────────────────────────────────── */
+.olat5-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  cursor: move;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25));
+  padding: 11px 12px;
+  cursor: grab;
+  background: linear-gradient(100deg, rgba(59, 130, 246, 0.16), rgba(139, 92, 246, 0.14), rgba(6, 182, 212, 0.12));
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
 }
-#olat5-overlay .olat5-logo {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; border-radius: 7px; font-weight: 800; font-size: 13px; color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-}
-#olat5-overlay .olat5-title { font-weight: 600; font-size: 13px; }
-#olat5-overlay .olat5-spacer { flex: 1; }
-#olat5-overlay .olat5-btn {
-  border: none; cursor: pointer; font-weight: 600; font-size: 12px; color: #fff;
-  padding: 4px 12px; border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-}
-#olat5-overlay .olat5-btn.olat5-stop { background: #ef4444; }
-#olat5-overlay .olat5-icon {
-  border: none; cursor: pointer; color: #cbd5e1; background: transparent;
-  font-size: 14px; width: 22px; height: 22px; border-radius: 6px;
-}
-#olat5-overlay .olat5-icon:hover { background: rgba(255,255,255,.1); }
+.olat5-header:active { cursor: grabbing; }
+.olat5-brand { display: flex; align-items: center; gap: 9px; }
+.olat5-falcon { width: 26px; height: 26px; border-radius: 8px; flex: none; filter: drop-shadow(0 2px 6px rgba(59,130,246,0.5)); }
+.olat5-brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+.olat5-name { font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+.olat5-tag { font-size: 10px; color: #aab3c9; font-weight: 500; }
+.olat5-spacer { flex: 1; }
 
-#olat5-overlay .olat5-body { padding: 10px; overflow-y: auto; }
-#olat5-overlay .olat5-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px; padding: 8px 10px; margin-bottom: 8px;
+/* status pill */
+.olat5-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
 }
-#olat5-overlay .olat5-panel.olat5-accent {
-  border-color: rgba(139, 92, 246, 0.4);
-  background: linear-gradient(135deg, rgba(59,130,246,.1), rgba(139,92,246,.1));
+.olat5-dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; flex: none; }
+.olat5-status.s-idle .olat5-dot { background: #ef4444; }
+.olat5-status.s-live .olat5-dot { background: #22c55e; box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: olat5-pulse 1.6s infinite; }
+.olat5-status.s-proc .olat5-dot { background: #f59e0b; animation: olat5-blink 0.9s infinite; }
+.olat5-status.s-paused .olat5-dot { background: #f59e0b; }
+.olat5-status.s-live { color: #86efac; }
+.olat5-status.s-proc { color: #fcd34d; }
+
+@keyframes olat5-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
 }
-#olat5-overlay .olat5-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
-  color: #8b5cf6; font-weight: 700; margin-bottom: 4px;
+@keyframes olat5-blink { 50% { opacity: 0.35; } }
+
+/* credits */
+.olat5-credits {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  padding: 3px 9px; border-radius: 999px;
+  background: linear-gradient(120deg, rgba(59,130,246,0.22), rgba(139,92,246,0.22));
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  font-variant-numeric: tabular-nums;
 }
-#olat5-overlay .olat5-text { font-size: 13px; line-height: 1.45; white-space: pre-wrap; }
-#olat5-overlay .olat5-small { font-size: 12px; color: #cbd5e1; }
-#olat5-overlay .olat5-list { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.5; }
-#olat5-overlay .olat5-transcript {
-  max-height: 140px; overflow-y: auto; font-size: 12px; color: #cbd5e1; line-height: 1.5;
+.olat5-credits #olat5-credit-count { font-weight: 700; font-size: 13px; color: #fff; }
+.olat5-credit-label { font-size: 9px; color: #c7b9ff; text-transform: uppercase; letter-spacing: 0.5px; }
+.olat5-credits.olat5-low { background: rgba(239, 68, 68, 0.18); border-color: rgba(239,68,68,0.4); }
+.olat5-credits.olat5-low #olat5-credit-count { color: #fca5a5; }
+
+.olat5-actions { display: flex; gap: 4px; }
+.olat5-icon {
+  width: 26px; height: 26px; border: none; border-radius: 8px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.07); color: #cdd5e6; font-size: 13px;
+  display: grid; place-items: center; transition: background 0.18s, transform 0.18s;
 }
-#olat5-overlay .olat5-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.olat5-icon:hover { background: rgba(255, 255, 255, 0.16); transform: translateY(-1px); color: #fff; }
+
+/* ── body ────────────────────────────────────────────────────── */
+.olat5-body {
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 70vh; overflow-y: auto;
+}
+.olat5-body::-webkit-scrollbar { width: 8px; }
+.olat5-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 8px; }
+
+.olat5-cta {
+  width: 100%; padding: 11px; border: none; border-radius: 12px; cursor: pointer;
+  font-weight: 700; font-size: 14px; color: #fff;
+  background: linear-gradient(100deg, #3b82f6, #8b5cf6 55%, #06b6d4);
+  box-shadow: 0 8px 22px -8px rgba(99, 102, 241, 0.8);
+  transition: transform 0.16s, box-shadow 0.16s, filter 0.16s;
+}
+.olat5-cta:hover { transform: translateY(-1px); filter: brightness(1.07); }
+.olat5-cta:active { transform: translateY(0); }
+.olat5-cta.olat5-stop { background: linear-gradient(100deg, #ef4444, #f43f5e); box-shadow: 0 8px 22px -8px rgba(244,63,94,0.7); }
+
+/* panels */
+.olat5-panel {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px; padding: 11px 12px;
+}
+.olat5-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.olat5-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+  color: #93a0bd; margin-bottom: 6px;
+}
+.olat5-text { color: #e7ebf5; }
+.olat5-small { font-size: 13px; color: #c4cce0; }
+.olat5-muted { color: #6b7488; }
+
+/* dominant suggested response */
+.olat5-hero {
+  background: linear-gradient(150deg, rgba(59,130,246,0.16), rgba(139,92,246,0.13) 60%, rgba(6,182,212,0.12));
+  border: 1px solid rgba(139, 92, 246, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px -14px rgba(99,102,241,0.7);
+}
+.olat5-hero .olat5-label { color: #c4b5fd; }
+.olat5-answer {
+  font-size: 17px; line-height: 1.5; font-weight: 600; color: #ffffff; letter-spacing: 0.1px;
+}
+.olat5-answer mark {
+  background: linear-gradient(transparent 60%, rgba(34,197,94,0.4) 0);
+  color: #fff; padding: 0 2px; border-radius: 3px;
+}
+.olat5-thinking i { animation: olat5-blink 1s infinite; font-style: normal; }
+.olat5-thinking i:nth-child(2) { animation-delay: 0.2s; }
+.olat5-thinking i:nth-child(3) { animation-delay: 0.4s; }
+
+.olat5-list { margin: 0; padding-left: 18px; }
+.olat5-list li { margin: 3px 0; color: #dde3f1; }
+
+/* transcript */
+.olat5-transcript {
+  max-height: 130px; overflow-y: auto; font-size: 12.5px; color: #b9c2d8;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.olat5-transcript::-webkit-scrollbar { width: 6px; }
+.olat5-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+.olat5-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.olat5-line.olat5-self { color: #8ab4ff; }
+
+/* ── presentation mode (minimized floating falcon) ───────────── */
+.olat5-restore {
+  display: none;
+  width: 54px; height: 54px; border: none; border-radius: 16px; cursor: pointer; padding: 0;
+  background: linear-gradient(150deg, rgba(17,20,34,0.9), rgba(13,16,28,0.95));
+  box-shadow: 0 14px 36px -10px rgba(0,0,0,0.7);
+}
+.olat5-restore .olat5-falcon { width: 38px; height: 38px; margin: 8px; filter: drop-shadow(0 3px 8px rgba(59,130,246,0.6)); }
+.olat5-restore:hover { transform: translateY(-2px); transition: transform 0.18s; }
+
+#olat5-overlay.olat5-presentation {
+  width: 54px; min-width: 0; background: transparent; border: none; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; resize: none; overflow: visible;
+}
+#olat5-overlay.olat5-presentation .olat5-header,
+#olat5-overlay.olat5-presentation .olat5-body { display: none; }
+#olat5-overlay.olat5-presentation .olat5-restore { display: block; animation: olat5-in 0.24s ease; }
+
+/* ── interview setup form ────────────────────────────────────── */
+.olat5-setup {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.olat5-setup-row { display: flex; gap: 8px; }
+.olat5-input {
+  width: 100%; padding: 9px 11px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05);
+  color: #fff; font-size: 13.5px; font-family: inherit;
+}
+.olat5-input::placeholder { color: #8b94aa; }
+.olat5-input:focus { outline: none; border-color: rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.08); }
+.olat5-setup-hint { font-size: 11px; color: #8b94aa; line-height: 1.4; }
+.olat5-setup-hint.olat5-hint-error { color: #fca5a5; }
+
+/* ── live context strip ──────────────────────────────────────── */
+.olat5-context {
+  background: linear-gradient(120deg, rgba(59,130,246,0.12), rgba(139,92,246,0.1));
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 13px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.olat5-ctx-row { display: flex; gap: 8px; align-items: baseline; }
+.olat5-ctx-k {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  color: #c4b5fd; width: 64px; flex: none;
+}
+.olat5-ctx-v { font-size: 13.5px; font-weight: 600; color: #fff; }

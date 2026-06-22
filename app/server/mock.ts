@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
 import { aiJSON, isAIConfigured } from "~/lib/ai.server";
+import { buildContextBlock } from "~/lib/interview-context";
 import {
   checkCreditBalance,
   deductCredits,
@@ -32,6 +33,8 @@ export const startMockInterviewFn = createServerFn({ method: "POST" })
         jobDescriptionId: z.string().uuid().optional(),
         resumeId: z.string().uuid().optional(),
         role: z.string().max(160).optional(),
+        company: z.string().max(160).optional(),
+        industry: z.string().max(120).optional(),
       })
       .parse(d),
   )
@@ -52,13 +55,33 @@ export const startMockInterviewFn = createServerFn({ method: "POST" })
       });
       jdContent = jd ? `${jd.title}\n${jd.content}` : "";
     }
+    let resumeText = "";
+    if (data.resumeId) {
+      const r = await prisma.resumeUpload.findFirst({
+        where: { id: data.resumeId, userId: auth.userId },
+        select: { extractedText: true },
+      });
+      resumeText = r?.extractedText ?? "";
+    }
+
+    const contextBlock = buildContextBlock({
+      role: data.role,
+      company: data.company,
+      industry: data.industry,
+      resumeText,
+      jobDescriptionText: jdContent,
+    });
 
     let qs: { questions: MockQuestion[] };
     try {
       const res = await aiJSON<typeof qs>({
-        system: "You are conducting a mock interview. Generate a focused question set.",
+        system:
+          "You are an expert interviewer for ANY profession (teacher, nurse, chef, lawyer, accountant, salesperson, engineer, etc.). " +
+          "Generate a focused question set that fits the candidate's actual role and industry from the context. " +
+          "Only include technical/domain questions when they genuinely apply to that profession — never assume a tech job.",
         user:
-          `Return JSON with key: questions (MockQuestion[]), MockQuestion = {question, type} where type is "behavioral" | "technical" | "situational". Generate 6 questions.\n\nRole: ${data.role ?? "General"}\nJob description:\n${jdContent.slice(0, 6000)}`,
+          contextBlock +
+          `Return JSON with key: questions (MockQuestion[]), MockQuestion = {question, type} where type is "behavioral" | "technical" | "situational". Generate 6 questions tailored to the role and industry above.\n\nRole: ${data.role ?? "(see context)"}`,
       });
       qs = res.data;
     } catch {

@@ -4,9 +4,11 @@ import { prisma } from "~/lib/db.server";
 import {
   checkCreditBalance,
   deductCredits,
+  ensureCreditBalance,
   CREDIT_COSTS,
 } from "~/lib/credits.server";
 import { authenticateBearer, jsonResponse, preflight } from "~/lib/api-auth.server";
+import { createInterviewContext } from "~/lib/interview-context";
 
 const segmentSchema = z.object({
   speaker: z.string().max(60).optional(),
@@ -23,6 +25,11 @@ const bodySchema = z.discriminatedUnion("action", [
     action: z.literal("start"),
     title: z.string().max(200).optional(),
     platform: z.string().max(40).optional(),
+    role: z.string().max(160).optional(),
+    company: z.string().max(160).optional(),
+    industry: z.string().max(120).optional(),
+    resumeText: z.string().max(20000).optional(),
+    jobDescriptionText: z.string().max(20000).optional(),
   }),
   z.object({
     action: z.literal("transcript"),
@@ -32,6 +39,9 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("end"),
     sessionId: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal("credits"),
   }),
 ]);
 
@@ -55,26 +65,65 @@ export const Route = createFileRoute("/api/live/session")({
           return jsonResponse(request, { error: "INVALID_BODY" }, 400);
         }
 
+        // ── credits (read-only balance for the overlay) ────────
+        if (body.action === "credits") {
+          const bal = await ensureCreditBalance(user.userId, user.organizationId);
+          return jsonResponse(request, {
+            ok: true,
+            creditsRemaining: bal.currentBalance,
+            creditsUsed: Math.max(0, bal.monthlyAllocation - bal.currentBalance),
+            plan: bal.planType,
+            monthlyAllocation: bal.monthlyAllocation,
+          });
+        }
+
         // ── start ──────────────────────────────────────────────
         if (body.action === "start") {
           if ((await checkCreditBalance(user.userId)) < CREDIT_COSTS.LIVE_SESSION) {
             return jsonResponse(request, { error: "INSUFFICIENT_CREDITS" }, 402);
           }
+          // Build the universal interview context (any profession).
+          let interviewContextId: string | null = null;
+          let contextOut: { role: string; company: string | null; industry: string | null } | null = null;
+          if (body.role && body.role.trim()) {
+            const ctx = await createInterviewContext({
+              userId: user.userId,
+              organizationId: user.organizationId,
+              role: body.role.trim(),
+              company: body.company?.trim() || null,
+              industry: body.industry?.trim() || null,
+              resumeText: body.resumeText || null,
+              jobDescriptionText: body.jobDescriptionText || null,
+            });
+            interviewContextId = ctx.id;
+            contextOut = { role: ctx.role, company: ctx.company, industry: ctx.industry };
+          }
+
           const session = await prisma.session.create({
             data: {
               organizationId: user.organizationId,
               userId: user.userId,
-              title: body.title ?? "Live Interview",
+              title: body.title ?? (contextOut ? `${contextOut.role} interview` : "Live Interview"),
               mode: "INTERVIEW",
               platform: body.platform ?? null,
               status: "LIVE",
+              interviewContextId,
+              metadata: contextOut ? (contextOut as object) : undefined,
             },
             select: { id: true },
           });
-          await deductCredits(user.userId, "LIVE_SESSION", user.organizationId, {
+          const { remaining } = await deductCredits(
+            user.userId,
+            "LIVE_SESSION",
+            user.organizationId,
+            { sessionId: session.id },
+          );
+          return jsonResponse(request, {
+            ok: true,
             sessionId: session.id,
+            creditsRemaining: remaining,
+            context: contextOut,
           });
-          return jsonResponse(request, { ok: true, sessionId: session.id });
         }
 
         // Ownership check for transcript/end.
@@ -115,11 +164,13 @@ export const Route = createFileRoute("/api/live/session")({
           }),
           prisma.transcript.count({ where: { sessionId: session.id } }),
         ]);
+        const creditsRemaining = await checkCreditBalance(user.userId);
         return jsonResponse(request, {
           ok: true,
           sessionId: session.id,
           durationSec,
           transcriptCount,
+          creditsRemaining,
         });
       },
     },

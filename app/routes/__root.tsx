@@ -13,16 +13,16 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "OLat5 — AI Interview & Meeting Copilot" },
+      { title: "OLat5 Interview Copilot" },
       {
         name: "description",
         content:
-          "OLat5 is an AI-powered copilot for interviews and meetings: real-time transcription, summaries, and coaching.",
+          "OLat5 is an interview copilot with real time transcription, instant responses, resume context, and coaching for interviews and meetings.",
       },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", href: "/olat5-logo.png" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
   component: RootComponent,

@@ -16,6 +16,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspaceNewRouteImport } from './routes/workspace.new'
+import { Route as WorkspaceSessionIdRouteImport } from './routes/workspace.$sessionId'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app.dashboard.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhook'
@@ -24,6 +26,7 @@ import { Route as ApiLiveSuggestRouteImport } from './routes/api.live.suggest'
 import { Route as ApiLiveSessionRouteImport } from './routes/api.live.session'
 import { Route as ApiCryptomusWebhookRouteImport } from './routes/api.cryptomus.webhook'
 import { Route as AppDashboardTeamRouteImport } from './routes/_app.dashboard.team'
+import { Route as AppDashboardSupportRouteImport } from './routes/_app.dashboard.support'
 import { Route as AppDashboardSettingsRouteImport } from './routes/_app.dashboard.settings'
 import { Route as AppDashboardSessionsRouteImport } from './routes/_app.dashboard.sessions'
 import { Route as AppDashboardResumeRouteImport } from './routes/_app.dashboard.resume'
@@ -69,6 +72,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspaceNewRoute = WorkspaceNewRouteImport.update({
+  id: '/workspace/new',
+  path: '/workspace/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceSessionIdRoute = WorkspaceSessionIdRouteImport.update({
+  id: '/workspace/$sessionId',
+  path: '/workspace/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -107,6 +120,11 @@ const ApiCryptomusWebhookRoute = ApiCryptomusWebhookRouteImport.update({
 const AppDashboardTeamRoute = AppDashboardTeamRouteImport.update({
   id: '/dashboard/team',
   path: '/dashboard/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardSupportRoute = AppDashboardSupportRouteImport.update({
+  id: '/dashboard/support',
+  path: '/dashboard/support',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardSettingsRoute = AppDashboardSettingsRouteImport.update({
@@ -171,6 +189,8 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
+  '/workspace/new': typeof WorkspaceNewRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -181,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
+  '/dashboard/support': typeof AppDashboardSupportRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
   '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/live/session': typeof ApiLiveSessionRoute
@@ -197,6 +218,8 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
+  '/workspace/new': typeof WorkspaceNewRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -207,6 +230,7 @@ export interface FileRoutesByTo {
   '/dashboard/resume': typeof AppDashboardResumeRoute
   '/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/dashboard/settings': typeof AppDashboardSettingsRoute
+  '/dashboard/support': typeof AppDashboardSupportRoute
   '/dashboard/team': typeof AppDashboardTeamRoute
   '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/live/session': typeof ApiLiveSessionRoute
@@ -225,6 +249,8 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
+  '/workspace/new': typeof WorkspaceNewRoute
   '/_app/dashboard/billing': typeof AppDashboardBillingRoute
   '/_app/dashboard/credits': typeof AppDashboardCreditsRoute
   '/_app/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -235,6 +261,7 @@ export interface FileRoutesById {
   '/_app/dashboard/resume': typeof AppDashboardResumeRoute
   '/_app/dashboard/sessions': typeof AppDashboardSessionsRoute
   '/_app/dashboard/settings': typeof AppDashboardSettingsRoute
+  '/_app/dashboard/support': typeof AppDashboardSupportRoute
   '/_app/dashboard/team': typeof AppDashboardTeamRoute
   '/api/cryptomus/webhook': typeof ApiCryptomusWebhookRoute
   '/api/live/session': typeof ApiLiveSessionRoute
@@ -253,6 +280,8 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/auth/callback'
+    | '/workspace/$sessionId'
+    | '/workspace/new'
     | '/dashboard/billing'
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
@@ -263,6 +292,7 @@ export interface FileRouteTypes {
     | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
+    | '/dashboard/support'
     | '/dashboard/team'
     | '/api/cryptomus/webhook'
     | '/api/live/session'
@@ -279,6 +309,8 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/auth/callback'
+    | '/workspace/$sessionId'
+    | '/workspace/new'
     | '/dashboard/billing'
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
@@ -289,6 +321,7 @@ export interface FileRouteTypes {
     | '/dashboard/resume'
     | '/dashboard/sessions'
     | '/dashboard/settings'
+    | '/dashboard/support'
     | '/dashboard/team'
     | '/api/cryptomus/webhook'
     | '/api/live/session'
@@ -306,6 +339,8 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/auth/callback'
+    | '/workspace/$sessionId'
+    | '/workspace/new'
     | '/_app/dashboard/billing'
     | '/_app/dashboard/credits'
     | '/_app/dashboard/interview-prep'
@@ -316,6 +351,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard/resume'
     | '/_app/dashboard/sessions'
     | '/_app/dashboard/settings'
+    | '/_app/dashboard/support'
     | '/_app/dashboard/team'
     | '/api/cryptomus/webhook'
     | '/api/live/session'
@@ -334,6 +370,8 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  WorkspaceSessionIdRoute: typeof WorkspaceSessionIdRoute
+  WorkspaceNewRoute: typeof WorkspaceNewRoute
   ApiCryptomusWebhookRoute: typeof ApiCryptomusWebhookRoute
   ApiLiveSessionRoute: typeof ApiLiveSessionRoute
   ApiLiveSuggestRoute: typeof ApiLiveSuggestRoute
@@ -392,6 +430,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workspace/new': {
+      id: '/workspace/new'
+      path: '/workspace/new'
+      fullPath: '/workspace/new'
+      preLoaderRoute: typeof WorkspaceNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace/$sessionId': {
+      id: '/workspace/$sessionId'
+      path: '/workspace/$sessionId'
+      fullPath: '/workspace/$sessionId'
+      preLoaderRoute: typeof WorkspaceSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -446,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/team'
       fullPath: '/dashboard/team'
       preLoaderRoute: typeof AppDashboardTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard/support': {
+      id: '/_app/dashboard/support'
+      path: '/dashboard/support'
+      fullPath: '/dashboard/support'
+      preLoaderRoute: typeof AppDashboardSupportRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard/settings': {
@@ -532,6 +591,7 @@ interface AppRouteChildren {
   AppDashboardResumeRoute: typeof AppDashboardResumeRoute
   AppDashboardSessionsRoute: typeof AppDashboardSessionsRoute
   AppDashboardSettingsRoute: typeof AppDashboardSettingsRoute
+  AppDashboardSupportRoute: typeof AppDashboardSupportRoute
   AppDashboardTeamRoute: typeof AppDashboardTeamRoute
   AppDashboardIndexRoute: typeof AppDashboardIndexRoute
 }
@@ -547,6 +607,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardResumeRoute: AppDashboardResumeRoute,
   AppDashboardSessionsRoute: AppDashboardSessionsRoute,
   AppDashboardSettingsRoute: AppDashboardSettingsRoute,
+  AppDashboardSupportRoute: AppDashboardSupportRoute,
   AppDashboardTeamRoute: AppDashboardTeamRoute,
   AppDashboardIndexRoute: AppDashboardIndexRoute,
 }
@@ -562,6 +623,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  WorkspaceSessionIdRoute: WorkspaceSessionIdRoute,
+  WorkspaceNewRoute: WorkspaceNewRoute,
   ApiCryptomusWebhookRoute: ApiCryptomusWebhookRoute,
   ApiLiveSessionRoute: ApiLiveSessionRoute,
   ApiLiveSuggestRoute: ApiLiveSuggestRoute,

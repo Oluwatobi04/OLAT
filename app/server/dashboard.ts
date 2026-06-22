@@ -56,6 +56,60 @@ export const getDashboardDataFn = createServerFn({ method: "GET" }).handler(
   },
 );
 
+// ── Premium dashboard home — all real data, no placeholders ──────────────────
+export const getHomeFn = createServerFn({ method: "GET" }).handler(async () => {
+  const auth = await requireAuth();
+  const orgId = auth.organization?.id ?? null;
+
+  const [sessions, resumes, documents, balance, activity] = await Promise.all([
+    prisma.session.findMany({
+      where: { userId: auth.userId },
+      orderBy: { startedAt: "desc" },
+      take: 5,
+      select: { id: true, title: true, mode: true, platform: true, status: true, startedAt: true, durationSec: true },
+    }),
+    prisma.resumeUpload.findMany({
+      where: { userId: auth.userId },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, fileName: true, resumeScore: true, atsScore: true, createdAt: true },
+    }),
+    prisma.jobDescription.findMany({
+      where: { userId: auth.userId },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, title: true, company: true, createdAt: true },
+    }),
+    prisma.creditBalance.findUnique({ where: { userId: auth.userId } }),
+    prisma.creditTransaction.findMany({
+      where: { userId: auth.userId },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: { id: true, actionType: true, creditsUsed: true, direction: true, remainingBalance: true, createdAt: true },
+    }),
+  ]);
+
+  return {
+    user: auth.user,
+    counts: {
+      sessions: await prisma.session.count({ where: { userId: auth.userId } }),
+      resumes: await prisma.resumeUpload.count({ where: { userId: auth.userId } }),
+      documents: await prisma.jobDescription.count({ where: { userId: auth.userId } }),
+    },
+    sessions,
+    resumes,
+    documents,
+    activity,
+    credits: {
+      remaining: balance?.currentBalance ?? 0,
+      allocation: balance?.monthlyAllocation ?? 0,
+      used: Math.max(0, (balance?.monthlyAllocation ?? 0) - (balance?.currentBalance ?? 0)),
+      plan: balance?.planType ?? "FREE",
+    },
+    orgId,
+  };
+});
+
 // ── Profile ──────────────────────────────────────────────────────────────────
 export const updateProfileFn = createServerFn({ method: "POST" })
   .validator((d: unknown) =>

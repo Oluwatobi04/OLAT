@@ -9,11 +9,25 @@ function show(view) {
   $("session-view").classList.toggle("hidden", view !== "session");
 }
 
+async function loadCredits() {
+  try {
+    const c = await chrome.runtime.sendMessage({ type: "GET_CREDITS" });
+    if (c?.ok) {
+      $("c-left").textContent = c.creditsRemaining ?? "—";
+      $("c-used").textContent = c.creditsUsed ?? "—";
+      $("c-plan").textContent = c.plan ?? "—";
+    }
+  } catch {
+    /* leave placeholders */
+  }
+}
+
 async function refresh() {
   const res = await chrome.runtime.sendMessage({ type: "AUTH_STATE" });
   if (res?.user) {
     $("who").textContent = res.user.email || "Signed in";
     show("session");
+    loadCredits();
   } else {
     show("login");
   }
@@ -62,6 +76,8 @@ $("start-btn").addEventListener("click", async () => {
   });
   if (res?.ok) {
     $("session-msg").textContent = "Live copilot running. Check the overlay on the meeting tab.";
+    if (typeof res.creditsRemaining === "number") $("c-left").textContent = res.creditsRemaining;
+    loadCredits();
   } else {
     $("session-msg").textContent =
       res?.error === "INSUFFICIENT_CREDITS" ? "Out of credits — upgrade to continue." : (res?.error || "Could not start.");

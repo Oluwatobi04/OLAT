@@ -122,26 +122,40 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ ok: true, user: session?.user ?? null });
           break;
         }
+        case "GET_CREDITS": {
+          const out = await api("/api/live/session", { action: "credits" });
+          sendResponse(out);
+          break;
+        }
         case "START_SESSION": {
           const tabId = msg.tabId ?? sender?.tab?.id;
-          const { sessionId } = await api("/api/live/session", {
+          const { sessionId, creditsRemaining, context } = await api("/api/live/session", {
             action: "start",
             platform: msg.platform,
             title: msg.title,
+            role: msg.role,
+            company: msg.company,
+            industry: msg.industry,
           });
-          await chrome.storage.local.set({ olat5_active: { sessionId, platform: msg.platform } });
+          await chrome.storage.local.set({
+            olat5_active: { sessionId, platform: msg.platform, context: context ?? null },
+          });
           if (tabId) await startCapture(tabId);
-          sendResponse({ ok: true, sessionId });
+          sendResponse({ ok: true, sessionId, creditsRemaining, context });
           break;
         }
         case "END_SESSION": {
           await stopCapture();
           const { olat5_active } = await chrome.storage.local.get("olat5_active");
+          let result = { ok: true };
           if (olat5_active?.sessionId) {
-            await api("/api/live/session", { action: "end", sessionId: olat5_active.sessionId });
+            result = await api("/api/live/session", {
+              action: "end",
+              sessionId: olat5_active.sessionId,
+            });
           }
           await chrome.storage.local.remove("olat5_active");
-          sendResponse({ ok: true });
+          sendResponse({ ok: true, ...result });
           break;
         }
         case "SUGGEST": {

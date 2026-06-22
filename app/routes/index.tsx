@@ -80,7 +80,7 @@ function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground"
           >
-            AI-powered interview preparation, coaching, and meeting intelligence — resume
+            Interview preparation, coaching, and meeting intelligence. Resume
             analysis, mock interviews, live transcription, and instant summaries.
           </motion.p>
 
@@ -138,7 +138,7 @@ function LandingPage() {
             {[
               { icon: FileText, title: "Resume Analyzer", body: "ATS scoring, skill gaps, and AI rewrite suggestions in seconds." },
               { icon: MessageSquare, title: "Mock Interviews", body: "Realistic AI interviewer with scored feedback and coaching." },
-              { icon: Mic, title: "Live Intelligence", body: "Real-time transcription and AI insights during interviews." },
+              { icon: Mic, title: "Live Intelligence", body: "Real time transcription and AI insights during interviews." },
             ].map((f, i) => (
               <FeatureCard key={f.title} {...f} delay={i * 0.1} />
             ))}
@@ -211,9 +211,9 @@ function LandingPage() {
         <Section id="faq" title="Frequently asked questions" subtitle="FAQ">
           <div className="mx-auto max-w-3xl space-y-4">
             {[
-              { q: "How do credits work?", a: "Every AI action costs credits. Plans refresh monthly — Free 10, Pro 60, Team 200." },
+              { q: "How do credits work?", a: "Every AI action costs credits. Plans refresh monthly. Free 10, Pro 60, Team 200." },
               { q: "Which AI models power OLat5?", a: "Claude, GPT, and Gemini through a unified multi-model engine." },
-              { q: "Can I use it during live interviews?", a: "Yes — Live Sessions provide real-time transcription and AI insights." },
+              { q: "Can I use it during live interviews?", a: "Yes. Live sessions provide real time transcription and AI insights." },
               { q: "Is my data private?", a: "Your data is isolated per account with row-level security and encrypted storage." },
             ].map((f) => (
               <div key={f.q} className="glass rounded-xl p-5">

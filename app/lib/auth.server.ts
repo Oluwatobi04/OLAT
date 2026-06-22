@@ -152,9 +152,22 @@ export async function requireAuth(): Promise<AuthContext> {
   };
 }
 
-// Non-throwing variant for optional auth (e.g. marketing pages).
+// Non-throwing variant for optional auth (e.g. marketing/auth pages).
+// Never throws — if the database is briefly unreachable we treat the visitor
+// as logged-out rather than crashing a public page.
 export async function getOptionalAuth(): Promise<AuthContext | null> {
-  const authUser = await getSessionUser();
-  if (!authUser) return null;
-  return requireAuth();
+  try {
+    const authUser = await getSessionUser();
+    if (!authUser) return null;
+    return await requireAuth();
+  } catch (err) {
+    if (isRedirect(err)) throw err; // preserve intended redirects
+    console.error("[getOptionalAuth] degraded:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+// True when the thrown value is a TanStack Router redirect (must not be swallowed).
+function isRedirect(err: unknown): boolean {
+  return Boolean(err && typeof err === "object" && ("isRedirect" in err || "to" in err || "href" in err));
 }

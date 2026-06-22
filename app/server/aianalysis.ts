@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
 import { aiComplete, isAIConfigured } from "~/lib/ai.server";
+import { buildContextBlock, loadSessionContextBlock } from "~/lib/interview-context";
 import {
   checkCreditBalance,
   deductCredits,
@@ -85,6 +86,9 @@ export const runAnalysisFn = createServerFn({ method: "POST" })
         sessionId: z.string().uuid().optional(),
         resumeId: z.string().uuid().optional(),
         jobDescriptionId: z.string().uuid().optional(),
+        role: z.string().max(160).optional(),
+        company: z.string().max(160).optional(),
+        industry: z.string().max(120).optional(),
         model: z.enum(["claude", "gpt", "gemini"]).optional(),
       })
       .parse(d),
@@ -100,12 +104,19 @@ export const runAnalysisFn = createServerFn({ method: "POST" })
       return { ok: false as const, error: "INSUFFICIENT_CREDITS" };
     }
 
+    // Tailor the report to the candidate's real role/industry (any profession).
+    const contextBlock =
+      buildContextBlock({ role: data.role, company: data.company, industry: data.industry }) ||
+      (await loadSessionContextBlock(data.sessionId));
+
     let content: string;
     let model: string;
     try {
       const res = await aiComplete({
-        system: cfg.system,
-        user: cfg.prompt(data.input.slice(0, 12000)),
+        system:
+          cfg.system +
+          " The candidate may work in any profession; tailor everything to their actual role and industry and never assume a tech career.",
+        user: contextBlock + cfg.prompt(data.input.slice(0, 12000)),
         model: data.model,
         maxTokens: 2500,
       });

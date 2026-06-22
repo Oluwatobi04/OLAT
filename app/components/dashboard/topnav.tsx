@@ -41,23 +41,28 @@ export function TopNav({
   }
 
   return (
-    <header className="glass sticky top-0 z-20 flex h-16 items-center justify-between rounded-2xl px-4 lg:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-white/85 px-4 backdrop-blur-md lg:px-8">
       <div className="flex items-center gap-3">
         <button
-          className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 lg:hidden"
+          className="rounded-lg p-2 text-muted-foreground hover:bg-[#F1F5F9] lg:hidden"
           onClick={onMenuClick}
           aria-label="Open sidebar"
         >
           <Menu className="h-5 w-5" />
         </button>
         {organization ? (
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{organization.name}</span>
+            <span className="text-sm font-medium text-foreground">{organization.name}</span>
             <Badge variant="secondary">{organization.role}</Badge>
           </div>
         ) : null}
       </div>
+
+      <div className="flex items-center gap-3">
+        <Button asChild size="sm">
+          <Link to="/workspace/new">Start session</Link>
+        </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -100,6 +105,7 @@ export function TopNav({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </header>
   );
 }

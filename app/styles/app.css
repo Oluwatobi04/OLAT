@@ -6,38 +6,38 @@
 
 @layer base {
   :root {
-    /* Dark-first premium palette */
-    --background: 0 0% 4%;            /* #0A0A0A */
-    --foreground: 210 40% 98%;
-    --card: 222 39% 11%;             /* #111827 */
-    --card-foreground: 210 40% 98%;
-    --popover: 222 39% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;          /* electric blue #3B82F6 */
+    /* Premium light palette — Stripe / Linear / Notion */
+    --background: 0 0% 100%;             /* #FFFFFF */
+    --surface: 210 40% 98%;              /* #F8FAFC */
+    --foreground: 222 47% 11%;           /* #0F172A */
+    --card: 0 0% 100%;                   /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;              /* #2563EB */
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 15%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 258 90% 66%;           /* purple #8B5CF6 */
-    --accent-foreground: 0 0% 100%;
-    --cyan: 189 94% 43%;             /* #06B6D4 */
-    --destructive: 0 84% 60%;        /* #EF4444 */
+    --secondary: 210 40% 98%;            /* #F8FAFC */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 19% 35%;     /* #475569 */
+    --accent: 214 95% 93%;               /* #DBEAFE hover blue */
+    --accent-foreground: 221 83% 53%;
+    --destructive: 0 84% 60%;            /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
-    --success: 160 84% 39%;          /* #10B981 */
-    --warning: 38 92% 50%;           /* #F59E0B */
-    --border: 0 0% 100%;             /* used with /8 opacity */
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-    --radius: 0.75rem;
+    --success: 160 84% 39%;              /* #10B981 */
+    --warning: 38 92% 50%;               /* #F59E0B */
+    --border: 220 13% 91%;               /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.875rem;                  /* 14px */
   }
 
   * {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: hsl(var(--border));
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -51,88 +51,62 @@
 
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
   }
 }
 
 @layer components {
-  /* Ambient background glow used behind hero/dashboard */
+  /* App background — clean, soft. (Was a dark aurora; now a subtle light wash.) */
   .bg-aurora {
     background:
-      radial-gradient(60rem 40rem at 15% -10%, rgba(59, 130, 246, 0.18), transparent 60%),
-      radial-gradient(50rem 35rem at 90% 0%, rgba(139, 92, 246, 0.16), transparent 60%),
-      radial-gradient(40rem 30rem at 60% 100%, rgba(6, 182, 212, 0.1), transparent 60%);
+      radial-gradient(60rem 40rem at 12% -10%, rgba(37, 99, 235, 0.05), transparent 60%),
+      radial-gradient(48rem 32rem at 95% 0%, rgba(96, 165, 250, 0.05), transparent 60%),
+      hsl(var(--surface));
   }
 
-  /* Glassmorphism surface */
+  /* Surface card — was glassmorphism; now a clean white card. */
   .glass {
-    background: rgba(17, 24, 39, 0.6);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #ffffff;
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
   .glass-strong {
-    background: rgba(17, 24, 39, 0.8);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
   }
 
-  /* Gradient text */
+  /* Accent text — tasteful solid blue (no purple, no neon). */
   .text-gradient {
-    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #22d3ee 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  /* Gradient border card */
+  /* Subtle bordered card. */
   .gradient-border {
     position: relative;
-    background: rgba(17, 24, 39, 0.6);
-    border: 1px solid transparent;
-    background-clip: padding-box;
+    background: #ffffff;
+    border: 1px solid hsl(var(--border));
   }
-  .gradient-border::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5), rgba(6, 182, 212, 0.3));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
+  .gradient-border::before { content: none; }
 }
 
 @layer utilities {
-  .glow-blue { box-shadow: 0 0 0 1px rgba(59,130,246,.3), 0 8px 30px -8px rgba(59,130,246,.5); }
-  .glow-purple { box-shadow: 0 0 0 1px rgba(139,92,246,.3), 0 8px 30px -8px rgba(139,92,246,.5); }
+  /* Neon glows removed — replaced with premium soft shadows. */
+  .glow-blue { box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08); }
+  .glow-purple { box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08); }
+  .shadow-premium { box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08); }
 
-  @keyframes ai-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
-    50% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
-  }
-  .animate-ai-pulse { animation: ai-pulse 2s ease-in-out infinite; }
+  .animate-ai-pulse { animation: none; }
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50% { transform: translateY(-10px); }
   }
-  .animate-float { animation: float 6s ease-in-out infinite; }
+  .animate-float { animation: float 7s ease-in-out infinite; }
 
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-
-  /* AI typing dots */
   @keyframes typing-dot {
     0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
     30% { opacity: 1; transform: translateY(-3px); }
@@ -142,5 +116,5 @@
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.14); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.24); }

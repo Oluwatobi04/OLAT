@@ -67,7 +67,7 @@ function LivePage() {
         1000,
       );
       setRecording(true);
-      toast.success("Live session started — recording");
+      toast.success("Session started. Recording.");
     } catch (err) {
       toast.error(
         err instanceof DOMException
@@ -115,7 +115,7 @@ function LivePage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Live Interview</h1>
           <p className="text-sm text-muted-foreground">
-            Real-time recording with AI transcription and speaker detection. Costs 5 credits.
+            Real time recording with AI transcription and speaker detection. Costs 5 credits.
           </p>
         </div>
         {recording ? (
@@ -123,7 +123,7 @@ function LivePage() {
             <Radio className="h-3 w-3 animate-pulse" /> LIVE · {fmt(elapsed)}
           </Badge>
         ) : creditsLeft !== null ? (
-          <Badge variant="secondary">{creditsLeft} credits left</Badge>
+          <Badge variant="secondary">{creditsLeft} credits available</Badge>
         ) : null}
       </div>
 

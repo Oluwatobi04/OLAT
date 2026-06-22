@@ -92,7 +92,7 @@ function SignupPage() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Start using OLat5 free — no credit card required."
+      subtitle="Start using OLat5 free. No credit card required."
       footer={
         <>
           Already have an account?{" "}

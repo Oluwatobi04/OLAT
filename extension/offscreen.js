@@ -19,13 +19,15 @@ function isQuestion(text) {
 }
 
 function buildWsUrl() {
+  // NOTE: do NOT set `encoding`/`sample_rate` here. MediaRecorder emits
+  // WebM-containerized Opus; Deepgram auto-detects the container. Forcing
+  // `encoding=opus` makes Deepgram misread the bytes and return no transcript.
   const params = new URLSearchParams({
     model: "nova-2",
     smart_format: "true",
     diarize: "true",
     punctuate: "true",
     interim_results: "true",
-    encoding: "opus",
     language: "en",
   });
   return `wss://api.deepgram.com/v1/listen?${params.toString()}`;
