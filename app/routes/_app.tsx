@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { getSessionUser, requireAuth } from "~/lib/auth.server";
-import { prisma } from "~/lib/db.server";
+import { ensureCreditBalance } from "~/lib/credits.server";
 import { Sidebar } from "~/components/dashboard/sidebar";
 import { TopNav } from "~/components/dashboard/topnav";
 
@@ -11,14 +11,16 @@ const loadAuth = createServerFn({ method: "GET" }).handler(async () => {
   const sessionUser = await getSessionUser();
   if (!sessionUser) throw redirect({ to: "/login" });
   const auth = await requireAuth();
-  const bal = await prisma.creditBalance.findUnique({ where: { userId: auth.userId } });
+  // find-or-create: brand-new users get the balance from the signup transaction;
+  // users created before that fix get it backfilled here once. Never shows 0.
+  const bal = await ensureCreditBalance(auth.userId, auth.organization?.id ?? null);
   return {
     ...auth,
     credits: {
-      remaining: bal?.currentBalance ?? 0,
-      allocation: bal?.monthlyAllocation ?? 0,
-      used: Math.max(0, (bal?.monthlyAllocation ?? 0) - (bal?.currentBalance ?? 0)),
-      plan: bal?.planType ?? "FREE",
+      remaining: bal.currentBalance,
+      allocation: bal.monthlyAllocation,
+      used: Math.max(0, bal.monthlyAllocation - bal.currentBalance),
+      plan: bal.planType,
     },
   };
 });

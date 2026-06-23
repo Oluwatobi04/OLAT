@@ -98,6 +98,18 @@ export async function ensureUserRecord(authUser: SupabaseUser): Promise<void> {
       },
     });
 
+    // Grant the 10 free credits atomically with signup so the dashboard never
+    // shows a temporary 0-credit state and there's no init race.
+    await tx.creditBalance.create({
+      data: {
+        userId: authUser.id,
+        organizationId: org.id,
+        currentBalance: 10,
+        monthlyAllocation: 10,
+        planType: "FREE",
+      },
+    });
+
     await tx.auditLog.create({
       data: {
         organizationId: org.id,

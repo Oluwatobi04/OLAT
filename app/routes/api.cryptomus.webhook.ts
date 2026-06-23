@@ -34,6 +34,16 @@ export const Route = createFileRoute("/api/cryptomus/webhook")({
 
         if (isPaidStatus(status)) {
           const plan = payment.plan as PlanType;
+          // Billing interval was stashed on the payment at checkout time.
+          const interval =
+            (payment.raw as unknown as { interval?: string } | null)?.interval === "ANNUAL"
+              ? "ANNUAL"
+              : "MONTHLY";
+          const periodStart = new Date();
+          const periodEnd = new Date(periodStart);
+          if (interval === "ANNUAL") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          else periodEnd.setMonth(periodEnd.getMonth() + 1);
+
           await prisma.$transaction(async (tx) => {
             await tx.payment.update({
               where: { reference },
@@ -43,7 +53,14 @@ export const Route = createFileRoute("/api/cryptomus/webhook")({
             if (payment.organizationId) {
               await tx.subscription.updateMany({
                 where: { organizationId: payment.organizationId },
-                data: { plan: plan === "TEAM" ? "TEAM" : "PRO", status: "ACTIVE" },
+                data: {
+                  plan: plan === "TEAM" ? "TEAM" : "PRO",
+                  status: "ACTIVE",
+                  interval,
+                  currentPeriodStart: periodStart,
+                  currentPeriodEnd: periodEnd,
+                  cancelAtPeriodEnd: false,
+                },
               });
             }
             await tx.auditLog.create({

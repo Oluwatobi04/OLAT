@@ -1,18 +1,13 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, Cpu, Clock, Mic } from "lucide-react";
+import { Check, Cpu, Clock, Mic } from "lucide-react";
 import { z } from "zod";
-import {
-  getBillingStatusFn,
-  createCheckoutFn,
-  createPortalFn,
-  cancelSubscriptionFn,
-} from "~/server/billing";
+import { getBillingStatusFn } from "~/server/billing";
+import { createSubscriptionCheckoutFn } from "~/server/payments";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { CryptoCheckout } from "~/components/billing/crypto-checkout";
 import { formatCurrency, formatDate } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/dashboard/billing")({
@@ -24,11 +19,10 @@ export const Route = createFileRoute("/_app/dashboard/billing")({
 function BillingPage() {
   const data = Route.useLoaderData();
   const search = Route.useSearch();
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"monthly" | "annual" | null>(null);
 
   useEffect(() => {
-    if (search.status === "success") toast.success("Subscription active. Welcome to Pro!");
+    if (search.status === "success") toast.success("Payment received — your plan will activate shortly.");
     if (search.status === "cancelled") toast.message("Checkout cancelled");
   }, [search.status]);
 
@@ -46,50 +40,24 @@ function BillingPage() {
   const sub = data.subscription;
   const isPro = sub?.plan === "PRO" && sub.status === "ACTIVE";
 
+  // Upgrade via Cryptomus: creates an invoice and redirects to hosted checkout.
   async function checkout(plan: "monthly" | "annual") {
-    setBusy(true);
+    setBusy(plan);
     try {
-      const res = await createCheckoutFn({ data: { plan } });
+      const res = await createSubscriptionCheckoutFn({ data: { plan } });
       if (!res.ok) {
-        toast.error(res.error);
+        toast.error(
+          res.error === "CRYPTO_NOT_CONFIGURED"
+            ? "Crypto checkout isn't configured yet."
+            : res.error,
+        );
         return;
       }
       window.location.href = res.url;
     } catch {
       toast.error("Could not start checkout");
     } finally {
-      setBusy(false);
-    }
-  }
-
-  async function openPortal() {
-    setBusy(true);
-    try {
-      const res = await createPortalFn();
-      if (!res.ok) {
-        toast.error(res.error);
-        return;
-      }
-      window.location.href = res.url;
-    } catch {
-      toast.error("Could not open billing portal");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function cancel() {
-    setBusy(true);
-    try {
-      const res = await cancelSubscriptionFn();
-      if (!res.ok) {
-        toast.error(res.error);
-        return;
-      }
-      toast.success("Subscription will cancel at period end");
-      await router.invalidate();
-    } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -102,9 +70,9 @@ function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">Billing</h1>
         <p className="text-sm text-muted-foreground">
-          Manage your subscription, payment methods, and invoices.
+          Manage your subscription and view usage. Payments are processed in crypto via Cryptomus.
         </p>
       </div>
 
@@ -118,30 +86,16 @@ function BillingPage() {
                 : "Free plan"}
             </CardDescription>
           </div>
-          <Badge variant={isPro ? "success" : "secondary"}>
-            {sub?.status ?? "ACTIVE"}
-          </Badge>
+          <Badge variant={isPro ? "success" : "secondary"}>{sub?.status ?? "ACTIVE"}</Badge>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {sub?.currentPeriodEnd ? (
+        {sub?.currentPeriodEnd ? (
+          <CardContent>
             <p className="text-sm text-muted-foreground">
-              {sub.cancelAtPeriodEnd ? "Cancels on " : "Renews on "}
+              {sub.cancelAtPeriodEnd ? "Access until " : "Renews on "}
               {formatDate(sub.currentPeriodEnd)}
             </p>
-          ) : null}
-          {canBill && isPro ? (
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" onClick={openPortal} disabled={busy}>
-                <ExternalLink className="h-4 w-4" /> Manage in portal
-              </Button>
-              {!sub?.cancelAtPeriodEnd ? (
-                <Button variant="ghost" onClick={cancel} disabled={busy} className="text-destructive">
-                  Cancel subscription
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </CardContent>
+          </CardContent>
+        ) : null}
       </Card>
 
       {!isPro ? (
@@ -150,9 +104,10 @@ function BillingPage() {
             name="Pro Monthly"
             price={formatCurrency(data.plans.monthly.amount)}
             cadence="/month"
-            features={["Unlimited sessions", "AI summaries", "Priority support"]}
+            features={["Unlimited sessions", "AI summaries & coaching", "Priority support"]}
             onSelect={() => checkout("monthly")}
-            disabled={!canBill || busy}
+            loading={busy === "monthly"}
+            disabled={!canBill || busy !== null}
           />
           <PlanCard
             name="Pro Annual"
@@ -161,9 +116,16 @@ function BillingPage() {
             highlight
             features={["Everything in Monthly", "2 months free", "Early feature access"]}
             onSelect={() => checkout("annual")}
-            disabled={!canBill || busy}
+            loading={busy === "annual"}
+            disabled={!canBill || busy !== null}
           />
         </div>
+      ) : null}
+
+      {!data.cryptoConfigured ? (
+        <p className="rounded-xl bg-[#FEF3C7] px-4 py-2 text-sm text-[#92400E]">
+          Crypto checkout isn't configured. Set CRYPTOMUS_API_KEY and CRYPTOMUS_MERCHANT_ID to enable upgrades.
+        </p>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -180,43 +142,26 @@ function BillingPage() {
         ))}
       </div>
 
-      {canBill ? <CryptoCheckout /> : null}
-
       <Card>
         <CardHeader>
           <CardTitle>Invoices</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {data.invoices.length === 0 ? (
-            <p className="px-6 py-8 text-center text-sm text-muted-foreground">
-              No invoices yet.
-            </p>
+            <p className="px-6 py-8 text-center text-sm text-muted-foreground">No invoices yet.</p>
           ) : (
             <div className="divide-y">
               {data.invoices.map((inv) => (
                 <div key={inv.id} className="flex items-center justify-between p-4">
                   <div>
-                    <p className="font-medium">{inv.number ?? inv.stripeInvoiceId}</p>
+                    <p className="font-medium">{inv.number ?? inv.stripeInvoiceId ?? "Invoice"}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(inv.createdAt)}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium">
                       {formatCurrency(inv.amountPaid || inv.amountDue, inv.currency)}
                     </span>
-                    <Badge variant={inv.status === "paid" ? "success" : "secondary"}>
-                      {inv.status}
-                    </Badge>
-                    {inv.hostedInvoiceUrl ? (
-                      <a
-                        href={inv.hostedInvoiceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-muted-foreground hover:text-foreground"
-                        aria-label="View invoice"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    ) : null}
+                    <Badge variant={inv.status === "paid" ? "success" : "secondary"}>{inv.status}</Badge>
                   </div>
                 </div>
               ))}
@@ -235,6 +180,7 @@ function PlanCard({
   features,
   onSelect,
   disabled,
+  loading,
   highlight,
 }: {
   name: string;
@@ -243,6 +189,7 @@ function PlanCard({
   features: string[];
   onSelect: () => void;
   disabled?: boolean;
+  loading?: boolean;
   highlight?: boolean;
 }) {
   return (
@@ -266,7 +213,7 @@ function PlanCard({
           ))}
         </ul>
         <Button className="w-full" onClick={onSelect} disabled={disabled}>
-          Upgrade
+          {loading ? "Starting checkout…" : "Upgrade"}
         </Button>
       </CardContent>
     </Card>

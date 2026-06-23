@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
 import { stripe, PLANS, type PlanKey } from "~/lib/stripe.server";
+import { isCryptomusConfigured } from "~/lib/cryptomus.server";
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 
@@ -57,6 +58,7 @@ export const getBillingStatusFn = createServerFn({ method: "GET" }).handler(
         monthly: { label: PLANS.monthly.label, amount: PLANS.monthly.amount },
         annual: { label: PLANS.annual.label, amount: PLANS.annual.amount },
       },
+      cryptoConfigured: isCryptomusConfigured(),
     };
   },
 );
