@@ -1,15 +1,29 @@
 import { prisma } from "./db.server";
 import type { Prisma } from "@prisma/client";
 
-// Universal credit costs per AI action.
+// ── Canonical credit model ───────────────────────────────────────────────────
+// One single rule across the whole app: 1 credit = 30 minutes of live
+// Interview Copilot usage.  credits_used = ceil(session_minutes / 30).
+export const MINUTES_PER_CREDIT = 30;
+
+// Live interview cost from a session's duration in minutes (minimum 1 credit).
+export function creditsForMinutes(minutes: number): number {
+  return Math.max(1, Math.ceil(minutes / MINUTES_PER_CREDIT));
+}
+
+// Inverse: how many minutes a credit balance is worth (for "remaining minutes").
+export function minutesForCredits(credits: number): number {
+  return Math.max(0, credits) * MINUTES_PER_CREDIT;
+}
+
+// Credit costs per AI action. LIVE_SESSION is the reservation taken when a
+// session starts (the first 30-minute block); the remainder is charged at the
+// end from the real duration via creditsForMinutes().
 export const CREDIT_COSTS = {
   RESUME_ANALYSIS: 1,
   JD_ANALYSIS: 1,
-  QUESTION_GENERATION: 1,
-  TECHNICAL_QUESTIONS: 1,
-  SUGGESTED_ANSWERS: 1,
   MOCK_INTERVIEW: 3,
-  LIVE_SESSION: 5,
+  LIVE_SESSION: 1,
   SCREEN_ANALYSIS: 1,
   LIVE_SUGGESTION: 0,
   INTERVIEW_SUMMARY: 1,
@@ -23,9 +37,11 @@ export const CREDIT_COSTS = {
 
 export type CreditAction = keyof typeof CREDIT_COSTS;
 
+// Monthly credit allocations granted by an active plan.
+// PRO is the monthly subscription baseline; annual grants more (see billing).
 export const PLAN_ALLOCATIONS = {
   FREE: 10,
-  PRO: 60,
+  PRO: 300,
   TEAM: 200,
 } as const;
 
@@ -132,13 +148,49 @@ export async function addCredits(
   });
 }
 
+// Best-effort debit that never throws and never drives the balance negative.
+// Used to reconcile a live session's real duration at end-of-call.
+export async function deductCreditsBestEffort(
+  userId: string,
+  amount: number,
+  actionType: string,
+  organizationId?: string | null,
+  metadata?: Record<string, unknown>,
+): Promise<{ remaining: number; used: number }> {
+  if (amount <= 0) {
+    return { remaining: await checkCreditBalance(userId), used: 0 };
+  }
+  return prisma.$transaction(async (tx) => {
+    const bal = await ensureCreditBalanceTx(tx, userId, organizationId);
+    const used = Math.min(amount, bal.currentBalance);
+    if (used <= 0) return { remaining: bal.currentBalance, used: 0 };
+    const remaining = bal.currentBalance - used;
+    await tx.creditBalance.update({ where: { userId }, data: { currentBalance: remaining } });
+    await tx.creditTransaction.create({
+      data: {
+        userId,
+        organizationId: organizationId ?? bal.organizationId,
+        actionType,
+        creditsUsed: used,
+        remainingBalance: remaining,
+        direction: "DEBIT",
+        metadata: (metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+      },
+    });
+    return { remaining, used };
+  });
+}
+
 // Set the plan and reset the monthly allocation (called after successful payment).
+// `allocationOverride` lets annual subscriptions grant a larger pool than the
+// monthly PLAN_ALLOCATIONS baseline (e.g. 3,600 for the annual Pro plan).
 export async function setPlanAndAllocate(
   userId: string,
   plan: PlanType,
   organizationId?: string | null,
+  allocationOverride?: number,
 ): Promise<void> {
-  const allocation = PLAN_ALLOCATIONS[plan];
+  const allocation = allocationOverride ?? PLAN_ALLOCATIONS[plan];
   await prisma.creditBalance.upsert({
     where: { userId },
     update: {

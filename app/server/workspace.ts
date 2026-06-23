@@ -12,6 +12,8 @@ import {
 import {
   checkCreditBalance,
   deductCredits,
+  deductCreditsBestEffort,
+  creditsForMinutes,
   CREDIT_COSTS,
   InsufficientCreditsError,
 } from "~/lib/credits.server";
@@ -19,8 +21,12 @@ import {
 const QUESTION_RE = /\?\s*$/;
 const QUESTION_HINTS =
   /\b(tell me|describe|why|how|what|walk me through|can you|could you|explain|give an example|have you|where do you see|talk about)\b/i;
+// Only treat a COMPLETED utterance with enough words as a question — avoids
+// firing on partial fragments. Deepgram returns complete utterances per clip.
 function isQuestion(t: string) {
-  return QUESTION_RE.test(t.trim()) || QUESTION_HINTS.test(t);
+  const trimmed = t.trim();
+  if (trimmed.split(/\s+/).length < 3) return false;
+  return QUESTION_RE.test(trimmed) || QUESTION_HINTS.test(trimmed);
 }
 
 // ── Data for the 3-step new-session flow ─────────────────────────────────────
@@ -136,7 +142,7 @@ export const getWorkspaceFn = createServerFn({ method: "GET" })
       prisma.transcript.findMany({
         where: { sessionId: session.id },
         orderBy: { startMs: "asc" },
-        select: { id: true, speaker: true, speakerRole: true, text: true, startMs: true },
+        select: { id: true, speaker: true, speakerRole: true, text: true, startMs: true, confidence: true },
       }),
       session.interviewContextId
         ? prisma.interviewContext.findUnique({ where: { id: session.interviewContextId } })
@@ -349,17 +355,42 @@ export const saveNotesFn = createServerFn({ method: "POST" })
   });
 
 // ── End the session ──────────────────────────────────────────────────────────
+// Finalizes the record and reconciles credits from the REAL duration using the
+// canonical rule (1 credit = 30 min). One credit was reserved at start, so we
+// charge only the remainder here (best-effort, never negative).
 export const endWorkspaceFn = createServerFn({ method: "POST" })
   .validator((d: unknown) =>
     z.object({ sessionId: z.string().uuid(), durationSec: z.number().int().nonnegative() }).parse(d),
   )
   .handler(async ({ data }) => {
     const auth = await requireAuth();
-    const session = await prisma.session.findUnique({ where: { id: data.sessionId }, select: { userId: true } });
+    const session = await prisma.session.findUnique({
+      where: { id: data.sessionId },
+      select: { userId: true, organizationId: true, status: true },
+    });
     if (!session || session.userId !== auth.userId) return { ok: false as const };
+
+    const alreadyEnded = session.status === "COMPLETED";
     await prisma.session.update({
       where: { id: data.sessionId },
       data: { status: "COMPLETED", endedAt: new Date(), durationSec: data.durationSec },
     });
-    return { ok: true as const };
+
+    let creditsUsed = CREDIT_COSTS.LIVE_SESSION; // the reservation taken at start
+    if (!alreadyEnded) {
+      const minutes = data.durationSec / 60;
+      const total = creditsForMinutes(minutes); // ceil(min/30), min 1
+      const remainder = total - CREDIT_COSTS.LIVE_SESSION;
+      if (remainder > 0) {
+        const { used } = await deductCreditsBestEffort(
+          auth.userId,
+          remainder,
+          "LIVE_SESSION",
+          session.organizationId,
+          { sessionId: data.sessionId, durationSec: data.durationSec, billedMinutes: Math.round(minutes) },
+        );
+        creditsUsed += used;
+      }
+    }
+    return { ok: true as const, creditsUsed };
   });

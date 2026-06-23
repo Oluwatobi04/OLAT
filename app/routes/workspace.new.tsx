@@ -213,7 +213,7 @@ function NewSessionFlow() {
             )}
           </div>
         </motion.div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">{data.credits.remaining.toLocaleString()} credits available · 5 credits per session</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">{data.credits.remaining.toLocaleString()} credits available · 1 credit = 30 minutes</p>
       </div>
     </div>
   );

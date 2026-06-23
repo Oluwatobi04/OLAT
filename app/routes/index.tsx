@@ -164,14 +164,14 @@ function LandingPage() {
           <div className="grid gap-6 md:grid-cols-3">
             <PriceCard name="Free" price="$0" credits="10 credits / month" features={["All core features", "Community support"]} cta="Get started" />
             <PriceCard
-              name="Pro"
-              price="$12.99"
-              credits="60 credits / month"
-              features={["Priority AI processing", "PDF exports", "Advanced analytics", "Full prep toolkit"]}
+              name="Pro Monthly"
+              price="$49"
+              credits="Unlimited calls · 300 credits / month"
+              features={["Real-time AI answers", "Resume analysis & coaching", "Session reports", "Priority processing"]}
               cta="Upgrade to Pro"
               popular
             />
-            <PriceCard name="Team" price="$49" credits="200 credits / month" features={["Shared credit pool", "Team workspaces", "Admin controls"]} cta="Start team plan" />
+            <PriceCard name="Pro Annual" price="$285" credits="Unlimited calls · 3,600 credits / year" features={["Everything in Monthly", "Best value — save 52%", "Early feature access"]} cta="Go annual" />
           </div>
         </Section>
 

@@ -20,7 +20,6 @@ import { Route as WorkspaceNewRouteImport } from './routes/workspace.new'
 import { Route as WorkspaceSessionIdRouteImport } from './routes/workspace.$sessionId'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app.dashboard.index'
-import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhook'
 import { Route as ApiLiveTokenRouteImport } from './routes/api.live.token'
 import { Route as ApiLiveSuggestRouteImport } from './routes/api.live.suggest'
 import { Route as ApiLiveSessionRouteImport } from './routes/api.live.session'
@@ -91,11 +90,6 @@ const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
   getParentRoute: () => AppRoute,
-} as any)
-const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
-  id: '/api/stripe/webhook',
-  path: '/api/stripe/webhook',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLiveTokenRoute = ApiLiveTokenRouteImport.update({
   id: '/api/live/token',
@@ -207,7 +201,6 @@ export interface FileRoutesByFullPath {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
-  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/dashboard/': typeof AppDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -236,7 +229,6 @@ export interface FileRoutesByTo {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
-  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/dashboard': typeof AppDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -267,7 +259,6 @@ export interface FileRoutesById {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
-  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -298,7 +289,6 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
-    | '/api/stripe/webhook'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -327,7 +317,6 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
-    | '/api/stripe/webhook'
     | '/dashboard'
   id:
     | '__root__'
@@ -357,7 +346,6 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
-    | '/api/stripe/webhook'
     | '/_app/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -376,7 +364,6 @@ export interface RootRouteChildren {
   ApiLiveSessionRoute: typeof ApiLiveSessionRoute
   ApiLiveSuggestRoute: typeof ApiLiveSuggestRoute
   ApiLiveTokenRoute: typeof ApiLiveTokenRoute
-  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -457,13 +444,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AppDashboardIndexRouteImport
       parentRoute: typeof AppRoute
-    }
-    '/api/stripe/webhook': {
-      id: '/api/stripe/webhook'
-      path: '/api/stripe/webhook'
-      fullPath: '/api/stripe/webhook'
-      preLoaderRoute: typeof ApiStripeWebhookRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/live/token': {
       id: '/api/live/token'
@@ -629,7 +609,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLiveSessionRoute: ApiLiveSessionRoute,
   ApiLiveSuggestRoute: ApiLiveSuggestRoute,
   ApiLiveTokenRoute: ApiLiveTokenRoute,
-  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
