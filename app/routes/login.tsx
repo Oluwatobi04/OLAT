@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Check, Star, ShieldCheck, Sparkles, Mic, CircleDot } from "lucide-react";
 import { OAuthButtons } from "~/components/auth/oauth-buttons";
+import { PasswordInput } from "~/components/auth/password-input";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -50,9 +51,10 @@ function LoginPage() {
       toast.error("Enter a valid email and password");
       return;
     }
+    const rememberMe = form.get("rememberMe") === "on";
     setLoading(true);
     try {
-      const res = await signInFn({ data: parsed.data });
+      const res = await signInFn({ data: { ...parsed.data, rememberMe } });
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -208,8 +210,8 @@ function LoginPage() {
 
             <form className="space-y-4" onSubmit={onSubmit}>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+                <Label htmlFor="email">Email address</Label>
+                <Input id="email" name="email" type="email" autoComplete="email" required />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -218,8 +220,17 @@ function LoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-                <Input id="password" name="password" type="password" autoComplete="current-password" required />
+                <PasswordInput id="password" name="password" autoComplete="current-password" required />
               </div>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[#475569]">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  defaultChecked
+                  className="h-4 w-4 rounded border-[#CBD5E1] text-[#2563EB] focus:ring-2 focus:ring-[#2563EB]"
+                />
+                Remember me
+              </label>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Logging in..." : "Log in"}
               </Button>

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSupabaseServerClient } from "~/lib/supabase.server";
+import { getSupabaseServerClient, setRememberPreference } from "~/lib/supabase.server";
 import { ensureUserRecord, getSessionUser, requireAuth } from "~/lib/auth.server";
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
@@ -8,6 +8,10 @@ const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+const signInSchema = credentialsSchema.extend({
+  rememberMe: z.boolean().optional(),
 });
 
 const signupSchema = credentialsSchema.extend({
@@ -39,9 +43,13 @@ export const signUpFn = createServerFn({ method: "POST" })
 
 // ── Log in with email + password ──────────────────────────────────────────
 export const signInFn = createServerFn({ method: "POST" })
-  .validator((d: unknown) => credentialsSchema.parse(d))
+  .validator((d: unknown) => signInSchema.parse(d))
   .handler(async ({ data }) => {
-    const supabase = getSupabaseServerClient();
+    const remember = data.rememberMe ?? true;
+    // Record the preference (for future refreshes) and apply it to this
+    // request's auth cookies.
+    setRememberPreference(remember);
+    const supabase = getSupabaseServerClient({ persistSession: remember });
     const { data: result, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,

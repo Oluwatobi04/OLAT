@@ -11,30 +11,61 @@ const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
+const REMEMBER_COOKIE = "olat5-remember";
+
 // Request-scoped Supabase client that reads/writes auth cookies via the
 // TanStack Start server request/response context.
-export function getSupabaseServerClient(): SupabaseClient {
+//
+// `persistSession` controls the "remember me" behaviour: when false, auth
+// cookies are downgraded to session cookies (no maxAge/expires) so the session
+// ends when the browser closes. When the option is omitted we honor the
+// preference cookie written at sign-in, so token refreshes keep the same
+// lifetime across requests.
+export function getSupabaseServerClient(opts?: { persistSession?: boolean }): SupabaseClient {
   const request = getRequest();
+  const cookieHeader = request?.headers.get("cookie") ?? "";
+
+  const persist =
+    opts?.persistSession ??
+    !parseCookieHeader(cookieHeader).some(
+      (c) => c.name === REMEMBER_COOKIE && c.value === "0",
+    );
 
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
-        const header = request?.headers.get("cookie") ?? "";
-        return parseCookieHeader(header).map((c) => ({
+        return parseCookieHeader(cookieHeader).map((c) => ({
           name: c.name,
           value: c.value ?? "",
         }));
       },
       setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
         for (const { name, value, options } of cookies) {
+          const cookieOpts: CookieOptions = persist
+            ? options
+            : { ...options, maxAge: undefined, expires: undefined };
           setResponseHeader(
             "Set-Cookie",
-            serializeCookieHeader(name, value, options),
+            serializeCookieHeader(name, value, cookieOpts),
           );
         }
       },
     },
   });
+}
+
+// Persists the "remember me" choice so later token refreshes keep the same
+// cookie lifetime. When remember is off the preference itself is a session
+// cookie, so it disappears with the session.
+export function setRememberPreference(remember: boolean): void {
+  setResponseHeader(
+    "Set-Cookie",
+    serializeCookieHeader(REMEMBER_COOKIE, remember ? "1" : "0", {
+      path: "/",
+      sameSite: "lax",
+      ...(remember ? { maxAge: 60 * 60 * 24 * 365 } : {}),
+    }),
+  );
 }
 
 // Privileged admin client (service role) — never expose to the browser.

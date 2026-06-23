@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { AuthShell } from "~/components/auth/auth-shell";
 import { OAuthButtons } from "~/components/auth/oauth-buttons";
+import { PasswordInput } from "~/components/auth/password-input";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -33,14 +34,20 @@ function SignupPage() {
     const form = new FormData(e.currentTarget);
     const parsed = z
       .object({
-        fullName: z.string().min(1, "Enter your name"),
-        email: z.string().email(),
+        fullName: z.string().min(1, "Enter your full name"),
+        email: z.string().email("Enter a valid email"),
         password: z.string().min(8, "Password must be at least 8 characters"),
+        confirmPassword: z.string().min(1, "Confirm your password"),
+      })
+      .refine((d) => d.password === d.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
       })
       .safeParse({
         fullName: form.get("fullName"),
         email: form.get("email"),
         password: form.get("password"),
+        confirmPassword: form.get("confirmPassword"),
       });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -48,7 +55,8 @@ function SignupPage() {
     }
     setLoading(true);
     try {
-      const res = await signUpFn({ data: parsed.data });
+      const { fullName, email, password } = parsed.data;
+      const res = await signUpFn({ data: { fullName, email, password } });
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -111,15 +119,25 @@ function SignupPage() {
       <form className="space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
           <Label htmlFor="fullName">Full name</Label>
-          <Input id="fullName" name="fullName" autoComplete="name" required placeholder="Ada Lovelace" />
+          <Input id="fullName" name="fullName" autoComplete="name" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+          <Label htmlFor="email">Email address</Label>
+          <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} />
+          <PasswordInput id="password" name="password" autoComplete="new-password" required minLength={8} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <PasswordInput
+            id="confirmPassword"
+            name="confirmPassword"
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating account..." : "Create account"}
