@@ -7,6 +7,7 @@ import {
 import { Toaster } from "sonner";
 import type { ReactNode } from "react";
 import appCss from "~/styles/app.css?url";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "~/components/theme-provider";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -31,16 +32,22 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
-      <Toaster richColors position="top-right" />
+      <ThemeProvider>
+        <Outlet />
+        <Toaster richColors position="top-right" theme="system" />
+      </ThemeProvider>
     </RootDocument>
   );
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
+        {/* Apply the saved theme before first paint to avoid a flash. The script
+            mutates <html> class/color-scheme pre-hydration, so suppress the
+            expected attribute mismatch on this element. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="h-full min-h-screen bg-background text-foreground antialiased">

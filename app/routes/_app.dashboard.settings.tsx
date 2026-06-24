@@ -1,8 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Sun, Moon, Monitor } from "lucide-react";
 import { getProfileFn, updateProfileFn } from "~/server/dashboard";
 import { updatePasswordFn } from "~/server/auth";
+import { useTheme, type Theme } from "~/components/theme-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,9 +16,16 @@ export const Route = createFileRoute("/_app/dashboard/settings")({
   component: SettingsPage,
 });
 
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+];
+
 function SettingsPage() {
   const profile = Route.useLoaderData();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
@@ -114,6 +123,37 @@ function SettingsPage() {
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Choose how OLat5 looks. System follows your device setting.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid max-w-md grid-cols-3 gap-3">
+            {THEME_OPTIONS.map((opt) => {
+              const active = theme === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTheme(opt.value)}
+                  aria-pressed={active}
+                  className={
+                    "flex flex-col items-center gap-2 rounded-xl border p-4 text-sm font-medium transition-colors " +
+                    (active
+                      ? "border-primary bg-accent text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted")
+                  }
+                >
+                  <opt.icon className="h-5 w-5" />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 

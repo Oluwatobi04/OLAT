@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Menu, LogOut, User as UserIcon, Building2 } from "lucide-react";
+import { Menu, LogOut, User as UserIcon, Building2, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "~/components/theme-provider";
 import { Button } from "~/components/ui/button";
 import {
   Avatar,
@@ -29,6 +30,12 @@ export function TopNav({
   organization: { name: string; role: string } | null;
 }) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   async function handleSignOut() {
     try {
@@ -60,6 +67,14 @@ export function TopNav({
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          aria-label="Toggle theme"
+          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
         <Button asChild size="sm">
           <Link to="/workspace/new">Start session</Link>
         </Button>

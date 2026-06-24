@@ -72,15 +72,7 @@ function LoginPage() {
     <div className="grid min-h-screen grid-cols-1 bg-white lg:grid-cols-[1.05fr_1fr]">
       {/* ── LEFT: hero / showcase ── */}
       <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(48rem 32rem at 8% -10%, rgba(37,99,235,0.10), transparent 60%)," +
-              "radial-gradient(42rem 30rem at 100% 0%, rgba(96,165,250,0.12), transparent 55%)," +
-              "linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%)",
-          }}
-        />
+        <div className="bg-aurora pointer-events-none absolute inset-0" />
         <div className="relative z-10">
           <Logo height={40} />
         </div>
