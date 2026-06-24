@@ -6,7 +6,7 @@ import { AuthShell } from "~/components/auth/auth-shell";
 import { PasswordInput } from "~/components/auth/password-input";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { updatePasswordFn } from "~/server/auth";
+import { updatePasswordFn, signOutFn } from "~/server/auth";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
@@ -34,11 +34,19 @@ function ResetPasswordPage() {
     try {
       const res = await updatePasswordFn({ data: { password } });
       if (!res.ok) {
-        toast.error(res.error);
+        // Most common cause: the recovery link expired or was already used, so
+        // there's no active recovery session to update.
+        toast.error(
+          /session|jwt|expired|missing/i.test(res.error)
+            ? "This reset link has expired. Please request a new one."
+            : res.error,
+        );
         return;
       }
-      toast.success("Password updated");
-      await router.navigate({ to: "/dashboard" });
+      // End the recovery session and send the user to log in with the new password.
+      await signOutFn().catch(() => {});
+      toast.success("Password updated — please log in");
+      await router.navigate({ to: "/login" });
     } catch {
       toast.error("Could not update password");
     } finally {

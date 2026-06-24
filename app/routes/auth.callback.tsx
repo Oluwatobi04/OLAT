@@ -12,21 +12,29 @@ export const Route = createFileRoute("/auth/callback")({
         const url = new URL(request.url);
         const code = url.searchParams.get("code");
 
+        // Only allow safe in-app relative paths (no open redirects).
+        const rawNext = url.searchParams.get("next") ?? "/dashboard";
+        const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard";
+        // Where to send the user when the link is invalid/expired.
+        const failPath = next === "/reset-password" ? "/forgot-password?error=expired" : "/login?error=oauth_failed";
+
         const redirectTo = (path: string, headers?: Headers) => {
           const h = headers ?? new Headers();
           h.set("Location", path); // relative — resolves against the app origin
           return new Response(null, { status: 303, headers: h });
         };
 
-        if (!code) return redirectTo("/login?error=oauth_failed");
+        if (!code) return redirectTo(failPath);
 
         const { supabase, headers } = createSupabaseForResponse(request);
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error || !data.user) return redirectTo("/login?error=oauth_failed");
+        if (error || !data.user) return redirectTo(failPath);
 
         // Provision app user + org + workspace + free credits (idempotent).
         await ensureUserRecord(data.user);
-        return redirectTo("/dashboard", headers);
+        // Recovery → /reset-password (session now active so updateUser works);
+        // OAuth/email confirm → /dashboard.
+        return redirectTo(next, headers);
       },
     },
   },

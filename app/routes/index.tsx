@@ -10,6 +10,8 @@ import {
   BarChart3,
   Check,
   Zap,
+  CircleDot,
+  Coins,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Logo } from "~/components/brand/logo";
@@ -51,7 +53,7 @@ function LandingPage() {
 
       <main className="relative z-10">
         {/* HERO */}
-        <section className="mx-auto max-w-6xl px-6 pb-24 pt-20 text-center">
+        <section className="mx-auto max-w-6xl px-6 pb-10 pt-20 text-center">
           <motion.div
             initial="hidden"
             animate="show"
@@ -80,8 +82,8 @@ function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground"
           >
-            Interview preparation, coaching, and meeting intelligence. Resume
-            analysis, mock interviews, live transcription, and instant summaries.
+            OLat5 listens to your interview and gives you real-time AI answers —
+            plus live transcription, resume analysis, and instant summaries.
           </motion.p>
 
           <motion.div
@@ -101,32 +103,62 @@ function LandingPage() {
             </Button>
           </motion.div>
 
-          {/* animated dashboard preview */}
+          {/* Product preview — clean SaaS card (no browser frame, no black bg).
+              Shows the live-interview value: question → AI answer → transcript. */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
+            initial={{ opacity: 0, y: 32, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="glass-strong mx-auto mt-16 max-w-4xl rounded-2xl p-2 shadow-2xl shadow-blue-500/10"
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="glass-strong mx-auto mt-8 max-w-3xl rounded-2xl p-4 text-left shadow-2xl shadow-blue-500/10 sm:p-5"
           >
-            <div className="rounded-xl border border-white/5 bg-[#0d1117] p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500/70" />
-                <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
-                <span className="h-3 w-3 rounded-full bg-green-500/70" />
+            {/* status bar */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DBEAFE] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+                <Sparkles className="h-3.5 w-3.5" /> OLat5 Live
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#10B981]">
+                <CircleDot className="h-3 w-3" /> Listening
+              </span>
+              <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[#F1F5F9] px-2.5 py-1 text-xs font-semibold text-[#475569]">
+                <Coins className="h-3.5 w-3.5 text-[#2563EB]" /> 42 credits remaining
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-5">
+              {/* left: question + transcript */}
+              <div className="space-y-3 sm:col-span-2">
+                <div className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Current question</p>
+                  <p className="mt-1 text-[13px] font-medium leading-snug text-[#0F172A]">
+                    “Tell me about a time you led a project under a tight deadline.”
+                  </p>
+                </div>
+                <div className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Live transcript</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-[#475569]">
+                    <span className="font-semibold text-[#0F172A]">Interviewer:</span> Tell me about a time…
+                  </p>
+                  <p className="text-[12px] leading-relaxed text-[#475569]">
+                    <span className="font-semibold text-[#2563EB]">You:</span> Absolutely — last quarter…
+                  </p>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {["Resume Score", "ATS Match", "Readiness"].map((m, i) => (
-                  <div key={m} className="gradient-border rounded-xl p-4 text-left">
-                    <p className="text-xs text-muted-foreground">{m}</p>
-                    <p className="mt-1 text-2xl font-bold text-gradient">{[92, 88, 95][i]}%</p>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6]"
-                        style={{ width: `${[92, 88, 95][i]}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+
+              {/* right: AI response (primary) */}
+              <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 sm:col-span-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#2563EB]">
+                  <Sparkles className="h-3.5 w-3.5" /> AI response
+                </p>
+                <p className="mt-1.5 text-[14px] font-semibold leading-relaxed text-[#0F172A]">
+                  “I led a team of five and shipped the launch two weeks early.”
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {["Set a clear weekly plan", "Unblocked the team daily", "Shipped early — 18% lift"].map((p) => (
+                    <li key={p} className="flex items-center gap-1.5 text-[12px] text-[#334155]">
+                      <span className="h-1.5 w-1.5 flex-none rounded-full bg-[#2563EB]" /> {p}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </motion.div>

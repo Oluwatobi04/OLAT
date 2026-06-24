@@ -74,8 +74,13 @@ export const forgotPasswordFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
+    // Route recovery through /auth/callback so the PKCE recovery code is
+    // exchanged into a session (cookies set on the redirect) before landing on
+    // /reset-password. Sending straight to /reset-password leaves no session
+    // (updateUser fails) and, if that URL isn't allowlisted, Supabase falls back
+    // to the Site URL (the landing page) — the reported bug.
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${APP_URL}/reset-password`,
+      redirectTo: `${APP_URL}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
     });
     // Always return ok to avoid leaking which emails are registered.
     if (error) console.error("[forgotPassword]", error.message);
