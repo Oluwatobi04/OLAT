@@ -4,8 +4,14 @@ import {
   serializeCookieHeader,
   type CookieOptions,
 } from "@supabase/ssr";
-import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequest, setCookie } from "@tanstack/react-start/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+// h3's setCookie appends a Set-Cookie header per call. We use it instead of
+// setResponseHeader("Set-Cookie", …) because the latter REPLACES the header,
+// which silently drops all but the last cookie — corrupting multi-cookie
+// (chunked) Supabase sessions, e.g. OAuth sessions that carry provider tokens.
+type SetCookieOptions = Parameters<typeof setCookie>[2];
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? "";
@@ -41,13 +47,11 @@ export function getSupabaseServerClient(opts?: { persistSession?: boolean }): Su
       },
       setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
         for (const { name, value, options } of cookies) {
-          const cookieOpts: CookieOptions = persist
+          const cookieOpts = (persist
             ? options
-            : { ...options, maxAge: undefined, expires: undefined };
-          setResponseHeader(
-            "Set-Cookie",
-            serializeCookieHeader(name, value, cookieOpts),
-          );
+            : { ...options, maxAge: undefined, expires: undefined }) as SetCookieOptions;
+          // APPEND (not replace) so every chunk of a multi-cookie session is sent.
+          setCookie(name, value, cookieOpts);
         }
       },
     },
@@ -58,14 +62,11 @@ export function getSupabaseServerClient(opts?: { persistSession?: boolean }): Su
 // cookie lifetime. When remember is off the preference itself is a session
 // cookie, so it disappears with the session.
 export function setRememberPreference(remember: boolean): void {
-  setResponseHeader(
-    "Set-Cookie",
-    serializeCookieHeader(REMEMBER_COOKIE, remember ? "1" : "0", {
-      path: "/",
-      sameSite: "lax",
-      ...(remember ? { maxAge: 60 * 60 * 24 * 365 } : {}),
-    }),
-  );
+  setCookie(REMEMBER_COOKIE, remember ? "1" : "0", {
+    path: "/",
+    sameSite: "lax",
+    ...(remember ? { maxAge: 60 * 60 * 24 * 365 } : {}),
+  } as SetCookieOptions);
 }
 
 // Build a Supabase client for a raw server-route handler (e.g. the OAuth
