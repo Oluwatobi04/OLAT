@@ -3,7 +3,10 @@ import { z } from "zod";
 import { getSupabaseServerClient, setRememberPreference } from "~/lib/supabase.server";
 import { ensureUserRecord, getSessionUser, requireAuth } from "~/lib/auth.server";
 
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+// Strip any trailing slash so OAuth redirect URLs don't become "…//auth/callback"
+// (the production APP_URL env has a trailing slash), which breaks the redirect
+// allowlist match and the callback path.
+const APP_URL = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 
 const credentialsSchema = z.object({
   email: z.string().email(),

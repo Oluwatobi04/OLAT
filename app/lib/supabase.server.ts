@@ -68,6 +68,31 @@ export function setRememberPreference(remember: boolean): void {
   );
 }
 
+// Build a Supabase client for a raw server-route handler (e.g. the OAuth
+// callback), writing any auth cookies onto a Headers object the caller fully
+// controls. This guarantees Set-Cookie ships on the SAME Response as the
+// redirect — otherwise the new session is lost and the user bounces to /login.
+export function createSupabaseForResponse(request: Request): {
+  supabase: SupabaseClient;
+  headers: Headers;
+} {
+  const headers = new Headers();
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll() {
+        return parseCookieHeader(cookieHeader).map((c) => ({ name: c.name, value: c.value ?? "" }));
+      },
+      setAll(cookies: { name: string; value: string; options: CookieOptions }[]) {
+        for (const { name, value, options } of cookies) {
+          headers.append("Set-Cookie", serializeCookieHeader(name, value, options));
+        }
+      },
+    },
+  });
+  return { supabase, headers };
+}
+
 // Privileged admin client (service role) — never expose to the browser.
 export function getSupabaseAdminClient(): SupabaseClient {
   return createServerClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

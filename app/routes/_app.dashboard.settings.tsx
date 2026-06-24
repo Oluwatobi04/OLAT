@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getDashboardDataFn, updateProfileFn } from "~/server/dashboard";
+import { getProfileFn, updateProfileFn } from "~/server/dashboard";
 import { updatePasswordFn } from "~/server/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -10,23 +10,22 @@ import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 
 export const Route = createFileRoute("/_app/dashboard/settings")({
-  loader: () => getDashboardDataFn(),
+  loader: () => getProfileFn(),
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const data = Route.useLoaderData();
+  const profile = Route.useLoaderData();
   const router = useRouter();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const profile = data.auth.user.profile;
 
   async function saveProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setSavingProfile(true);
     try {
-      await updateProfileFn({
+      const res = await updateProfileFn({
         data: {
           fullName: String(form.get("fullName") ?? ""),
           jobTitle: String(form.get("jobTitle") ?? ""),
@@ -34,8 +33,12 @@ function SettingsPage() {
           timezone: String(form.get("timezone") ?? ""),
         },
       });
+      if (!res.ok) {
+        toast.error("Could not update profile");
+        return;
+      }
       toast.success("Profile updated");
-      await router.invalidate();
+      await router.invalidate(); // refetch getProfileFn so values persist on the page
     } catch {
       toast.error("Could not update profile");
     } finally {
@@ -80,26 +83,30 @@ function SettingsPage() {
           <CardDescription>Update your personal information.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
+          <form
+            key={`${profile.fullName}|${profile.jobTitle}|${profile.company}|${profile.timezone}`}
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={saveProfile}
+          >
             <div className="space-y-2">
               <Label htmlFor="fullName">Full name</Label>
-              <Input id="fullName" name="fullName" defaultValue={profile?.fullName ?? ""} />
+              <Input id="fullName" name="fullName" defaultValue={profile.fullName} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" defaultValue={data.auth.email} disabled />
+              <Input id="email" defaultValue={profile.email} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="jobTitle">Job title</Label>
-              <Input id="jobTitle" name="jobTitle" placeholder="Product Manager" />
+              <Input id="jobTitle" name="jobTitle" defaultValue={profile.jobTitle} placeholder="Product Manager" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="company">Company</Label>
-              <Input id="company" name="company" placeholder="Acme Inc." />
+              <Input id="company" name="company" defaultValue={profile.company} placeholder="Acme Inc." />
             </div>
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
-              <Input id="timezone" name="timezone" placeholder="America/New_York" />
+              <Input id="timezone" name="timezone" defaultValue={profile.timezone} placeholder="America/New_York" />
             </div>
             <div className="sm:col-span-2">
               <Button type="submit" disabled={savingProfile}>

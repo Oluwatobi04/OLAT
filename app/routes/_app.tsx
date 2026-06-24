@@ -1,15 +1,15 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { getSessionUser, requireAuth } from "~/lib/auth.server";
+import { requireAuth } from "~/lib/auth.server";
 import { ensureCreditBalance } from "~/lib/credits.server";
 import { Sidebar } from "~/components/dashboard/sidebar";
 import { TopNav } from "~/components/dashboard/topnav";
 
 // Server guard: resolves auth + a live credit snapshot, or redirects to /login.
+// requireAuth already reads the session and redirects when unauthenticated, so
+// we don't call getSessionUser separately (that's a duplicate Supabase getUser).
 const loadAuth = createServerFn({ method: "GET" }).handler(async () => {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser) throw redirect({ to: "/login" });
   const auth = await requireAuth();
   // find-or-create: brand-new users get the balance from the signup transaction;
   // users created before that fix get it backfilled here once. Never shows 0.

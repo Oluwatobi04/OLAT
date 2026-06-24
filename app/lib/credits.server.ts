@@ -191,31 +191,37 @@ export async function setPlanAndAllocate(
   allocationOverride?: number,
 ): Promise<void> {
   const allocation = allocationOverride ?? PLAN_ALLOCATIONS[plan];
-  await prisma.creditBalance.upsert({
-    where: { userId },
-    update: {
-      planType: plan,
-      monthlyAllocation: allocation,
-      currentBalance: allocation,
-      lastResetAt: new Date(),
-    },
-    create: {
-      userId,
-      organizationId: organizationId ?? null,
-      planType: plan,
-      monthlyAllocation: allocation,
-      currentBalance: allocation,
-    },
-  });
-  await prisma.creditTransaction.create({
-    data: {
-      userId,
-      organizationId: organizationId ?? null,
-      actionType: `PLAN_${plan}`,
-      creditsUsed: allocation,
-      remainingBalance: allocation,
-      direction: "CREDIT",
-    },
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.creditBalance.findUnique({ where: { userId } });
+    const before = existing?.currentBalance ?? 0;
+    await tx.creditBalance.upsert({
+      where: { userId },
+      update: {
+        planType: plan,
+        monthlyAllocation: allocation,
+        currentBalance: allocation,
+        lastResetAt: new Date(),
+      },
+      create: {
+        userId,
+        organizationId: organizationId ?? null,
+        planType: plan,
+        monthlyAllocation: allocation,
+        currentBalance: allocation,
+      },
+    });
+    // Record the SIGNED delta so balance always equals SUM(ledger entries).
+    const delta = allocation - before;
+    await tx.creditTransaction.create({
+      data: {
+        userId,
+        organizationId: organizationId ?? existing?.organizationId ?? null,
+        actionType: "SUBSCRIPTION_ALLOCATION",
+        creditsUsed: Math.abs(delta),
+        remainingBalance: allocation,
+        direction: delta >= 0 ? "CREDIT" : "DEBIT",
+      },
+    });
   });
 }
 

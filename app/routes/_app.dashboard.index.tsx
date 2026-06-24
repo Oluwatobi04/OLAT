@@ -125,25 +125,47 @@ function DashboardHome() {
         {/* Plan + credits */}
         <Card>
           <CardContent className="p-6">
-            <p className="text-sm font-semibold text-[#0F172A]">Current plan</p>
-            <div className="mt-3 flex items-center justify-between">
-              <Badge>{data.credits.plan}</Badge>
-              <span className="text-sm text-muted-foreground">
-                {data.credits.remaining.toLocaleString()} / {data.credits.allocation || "∞"} credits
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-[#0F172A]">Current Plan</p>
+              <span className="rounded-full bg-[#2563EB] px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
+                {data.credits.plan} Plan
               </span>
             </div>
+
+            <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Available Credits
+            </p>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-4xl font-bold tabular-nums text-[#0F172A]">
+                {data.credits.remaining.toLocaleString()}
+              </span>
+              <span className="text-lg font-medium text-muted-foreground">
+                / {data.credits.allocation > 0 ? data.credits.allocation.toLocaleString() : "∞"} Credits
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">1 Credit = 30 Minutes</p>
+            <p className="mt-2 text-sm font-semibold text-[#2563EB]">
+              Approx. {(data.credits.remaining * 30).toLocaleString()} Minutes Remaining
+            </p>
+
             {data.credits.allocation > 0 ? (
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
+              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[#E5E7EB]">
                 <div
-                  className="h-full rounded-full bg-[#2563EB]"
+                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6]"
                   style={{ width: `${Math.min(100, (data.credits.remaining / data.credits.allocation) * 100)}%` }}
                 />
               </div>
             ) : null}
-            <p className="mt-2 text-xs text-muted-foreground">{data.credits.used} credits used this cycle</p>
-            <Button className="mt-4 w-full" asChild>
-              <Link to="/dashboard/billing">Manage plan</Link>
+
+            <Button className="mt-5 w-full" asChild>
+              <Link to="/dashboard/billing">Upgrade Plan</Link>
             </Button>
+
+            {data.credits.plan !== "FREE" ? (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                {data.credits.used.toLocaleString()} credits used this cycle
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -237,12 +259,18 @@ function Empty({ icon: Icon, text }: { icon: typeof Mic; text: string }) {
 
 function labelFor(action: string): string {
   const map: Record<string, string> = {
+    SIGNUP_BONUS: "Signup bonus",
+    SESSION_USAGE: "Interview session",
     LIVE_SESSION: "Interview session",
+    PURCHASE: "Credit purchase",
+    SUBSCRIPTION_ALLOCATION: "Plan credits",
+    ADMIN_ADJUSTMENT: "Account adjustment",
     RESUME_ANALYSIS: "Resume analysis",
     JD_ANALYSIS: "Job description analysis",
     MOCK_INTERVIEW: "Mock interview",
     TRIAL_TOPUP: "Trial credit top-up",
     INTERVIEW_SUMMARY: "Interview summary",
+    SCREEN_ANALYSIS: "Screen analysis",
     COACHING_REPORT: "Coaching report",
   };
   return map[action] ?? action.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());

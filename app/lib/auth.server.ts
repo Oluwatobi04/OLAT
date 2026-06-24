@@ -110,6 +110,18 @@ export async function ensureUserRecord(authUser: SupabaseUser): Promise<void> {
       },
     });
 
+    // Immutable ledger entry for the starting bonus so balance == SUM(ledger).
+    await tx.creditTransaction.create({
+      data: {
+        userId: authUser.id,
+        organizationId: org.id,
+        actionType: "SIGNUP_BONUS",
+        creditsUsed: 10,
+        remainingBalance: 10,
+        direction: "CREDIT",
+      },
+    });
+
     await tx.auditLog.create({
       data: {
         organizationId: org.id,
@@ -129,16 +141,21 @@ export async function requireAuth(): Promise<AuthContext> {
     throw redirect({ to: "/login" });
   }
 
-  await ensureUserRecord(authUser);
+  // Hot path: read the app user directly. Provisioning (org/credits/lastLogin)
+  // happens at the auth entry points (signIn/signUp/OAuth callback), so we do
+  // NOT run ensureUserRecord — a findUnique + UPDATE — on every request. If the
+  // row is somehow missing (e.g. a race right after first OAuth), provision once.
+  const userSelect = {
+    id: true,
+    email: true,
+    profile: { select: { fullName: true, avatarUrl: true } },
+  } as const;
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: authUser.id },
-    select: {
-      id: true,
-      email: true,
-      profile: { select: { fullName: true, avatarUrl: true } },
-    },
-  });
+  let user = await prisma.user.findUnique({ where: { id: authUser.id }, select: userSelect });
+  if (!user) {
+    await ensureUserRecord(authUser);
+    user = await prisma.user.findUniqueOrThrow({ where: { id: authUser.id }, select: userSelect });
+  }
 
   const membership = await prisma.membership.findFirst({
     where: { userId: authUser.id, status: "ACTIVE" },

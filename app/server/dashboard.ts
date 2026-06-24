@@ -61,7 +61,18 @@ export const getHomeFn = createServerFn({ method: "GET" }).handler(async () => {
   const auth = await requireAuth();
   const orgId = auth.organization?.id ?? null;
 
-  const [sessions, resumes, documents, balance, activity] = await Promise.all([
+  // All independent reads run in parallel (the 3 counts previously ran
+  // sequentially inside the return object — 3 extra serial round-trips).
+  const [
+    sessions,
+    resumes,
+    documents,
+    balance,
+    activity,
+    sessionCount,
+    resumeCount,
+    documentCount,
+  ] = await Promise.all([
     prisma.session.findMany({
       where: { userId: auth.userId },
       orderBy: { startedAt: "desc" },
@@ -87,14 +98,17 @@ export const getHomeFn = createServerFn({ method: "GET" }).handler(async () => {
       take: 6,
       select: { id: true, actionType: true, creditsUsed: true, direction: true, remainingBalance: true, createdAt: true },
     }),
+    prisma.session.count({ where: { userId: auth.userId } }),
+    prisma.resumeUpload.count({ where: { userId: auth.userId } }),
+    prisma.jobDescription.count({ where: { userId: auth.userId } }),
   ]);
 
   return {
     user: auth.user,
     counts: {
-      sessions: await prisma.session.count({ where: { userId: auth.userId } }),
-      resumes: await prisma.resumeUpload.count({ where: { userId: auth.userId } }),
-      documents: await prisma.jobDescription.count({ where: { userId: auth.userId } }),
+      sessions: sessionCount,
+      resumes: resumeCount,
+      documents: documentCount,
     },
     sessions,
     resumes,
@@ -111,6 +125,23 @@ export const getHomeFn = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 // ── Profile ──────────────────────────────────────────────────────────────────
+// Returns ALL editable profile fields so the settings form can render saved
+// values (requireAuth's AuthContext only carries fullName/avatarUrl).
+export const getProfileFn = createServerFn({ method: "GET" }).handler(async () => {
+  const auth = await requireAuth();
+  const profile = await prisma.profile.findUnique({
+    where: { userId: auth.userId },
+    select: { fullName: true, jobTitle: true, company: true, timezone: true },
+  });
+  return {
+    email: auth.email,
+    fullName: profile?.fullName ?? "",
+    jobTitle: profile?.jobTitle ?? "",
+    company: profile?.company ?? "",
+    timezone: profile?.timezone ?? "",
+  };
+});
+
 export const updateProfileFn = createServerFn({ method: "POST" })
   .validator((d: unknown) =>
     z
@@ -124,13 +155,17 @@ export const updateProfileFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const auth = await requireAuth();
+    const clean = (v?: string) => {
+      const t = (v ?? "").trim();
+      return t.length ? t : null;
+    };
     await prisma.profile.update({
       where: { userId: auth.userId },
       data: {
-        fullName: data.fullName,
-        jobTitle: data.jobTitle,
-        company: data.company,
-        timezone: data.timezone,
+        fullName: clean(data.fullName),
+        jobTitle: clean(data.jobTitle),
+        company: clean(data.company),
+        timezone: clean(data.timezone) ?? "UTC",
       },
     });
     return { ok: true as const };

@@ -1,35 +1,33 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-import { getSupabaseServerClient } from "~/lib/supabase.server";
+import { createFileRoute } from "@tanstack/react-router";
+import { createSupabaseForResponse } from "~/lib/supabase.server";
 import { ensureUserRecord } from "~/lib/auth.server";
 
-// Exchanges the OAuth/email code for a session, bootstraps the app user,
-// then redirects into the dashboard (or back to login on failure).
-const handleCallback = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
-    z.object({ code: z.string().optional() }).parse(d),
-  )
-  .handler(async ({ data }) => {
-    if (!data.code) throw redirect({ to: "/login" });
-    const supabase = getSupabaseServerClient();
-    const { data: result, error } = await supabase.auth.exchangeCodeForSession(
-      data.code,
-    );
-    if (error || !result.user) {
-      throw redirect({ to: "/login", search: { error: "oauth_failed" } });
-    }
-    await ensureUserRecord(result.user);
-    throw redirect({ to: "/dashboard" });
-  });
-
+// OAuth / email callback. Implemented as a server-route handler (not a loader)
+// so the session cookies set by exchangeCodeForSession ship on the SAME 303
+// Response as the redirect. Successful auth always lands on /dashboard.
 export const Route = createFileRoute("/auth/callback")({
-  validateSearch: z.object({ code: z.string().optional() }),
-  loaderDeps: ({ search }) => ({ code: search.code }),
-  loader: ({ deps }) => handleCallback({ data: { code: deps.code } }),
-  component: () => (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-sm text-muted-foreground">Signing you in…</p>
-    </div>
-  ),
+  server: {
+    handlers: {
+      GET: async ({ request }: { request: Request }) => {
+        const url = new URL(request.url);
+        const code = url.searchParams.get("code");
+
+        const redirectTo = (path: string, headers?: Headers) => {
+          const h = headers ?? new Headers();
+          h.set("Location", path); // relative — resolves against the app origin
+          return new Response(null, { status: 303, headers: h });
+        };
+
+        if (!code) return redirectTo("/login?error=oauth_failed");
+
+        const { supabase, headers } = createSupabaseForResponse(request);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error || !data.user) return redirectTo("/login?error=oauth_failed");
+
+        // Provision app user + org + workspace + free credits (idempotent).
+        await ensureUserRecord(data.user);
+        return redirectTo("/dashboard", headers);
+      },
+    },
+  },
 });

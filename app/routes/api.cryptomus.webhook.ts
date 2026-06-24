@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/cryptomus/webhook")({
             // One-time credit pack: top up the existing balance.
             const credits = typeof raw.credits === "number" ? raw.credits : 0;
             if (credits > 0) {
-              await addCredits(payment.userId, credits, "CREDIT_PACK", payment.organizationId);
+              await addCredits(payment.userId, credits, "PURCHASE", payment.organizationId);
             }
           }
         } else if (["cancel", "fail", "wrong_amount", "system_fail"].includes(status)) {
