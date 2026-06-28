@@ -20,6 +20,7 @@ import { Route as WorkspaceNewRouteImport } from './routes/workspace.new'
 import { Route as WorkspaceSessionIdRouteImport } from './routes/workspace.$sessionId'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app.dashboard.index'
+import { Route as ApiPaystackWebhookRouteImport } from './routes/api.paystack.webhook'
 import { Route as ApiLiveTokenRouteImport } from './routes/api.live.token'
 import { Route as ApiLiveSuggestRouteImport } from './routes/api.live.suggest'
 import { Route as ApiLiveSessionRouteImport } from './routes/api.live.session'
@@ -36,6 +37,7 @@ import { Route as AppDashboardJobDescriptionsRouteImport } from './routes/_app.d
 import { Route as AppDashboardInterviewPrepRouteImport } from './routes/_app.dashboard.interview-prep'
 import { Route as AppDashboardCreditsRouteImport } from './routes/_app.dashboard.credits'
 import { Route as AppDashboardBillingRouteImport } from './routes/_app.dashboard.billing'
+import { Route as AppDashboardAdminRouteImport } from './routes/_app.dashboard.admin'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -90,6 +92,11 @@ const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
   getParentRoute: () => AppRoute,
+} as any)
+const ApiPaystackWebhookRoute = ApiPaystackWebhookRouteImport.update({
+  id: '/api/paystack/webhook',
+  path: '/api/paystack/webhook',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLiveTokenRoute = ApiLiveTokenRouteImport.update({
   id: '/api/live/token',
@@ -174,6 +181,11 @@ const AppDashboardBillingRoute = AppDashboardBillingRouteImport.update({
   path: '/dashboard/billing',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardAdminRoute = AppDashboardAdminRouteImport.update({
+  id: '/dashboard/admin',
+  path: '/dashboard/admin',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -185,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
   '/workspace/new': typeof WorkspaceNewRoute
+  '/dashboard/admin': typeof AppDashboardAdminRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -201,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
+  '/api/paystack/webhook': typeof ApiPaystackWebhookRoute
   '/dashboard/': typeof AppDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -213,6 +227,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
   '/workspace/new': typeof WorkspaceNewRoute
+  '/dashboard/admin': typeof AppDashboardAdminRoute
   '/dashboard/billing': typeof AppDashboardBillingRoute
   '/dashboard/credits': typeof AppDashboardCreditsRoute
   '/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -229,6 +244,7 @@ export interface FileRoutesByTo {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
+  '/api/paystack/webhook': typeof ApiPaystackWebhookRoute
   '/dashboard': typeof AppDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -243,6 +259,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/workspace/$sessionId': typeof WorkspaceSessionIdRoute
   '/workspace/new': typeof WorkspaceNewRoute
+  '/_app/dashboard/admin': typeof AppDashboardAdminRoute
   '/_app/dashboard/billing': typeof AppDashboardBillingRoute
   '/_app/dashboard/credits': typeof AppDashboardCreditsRoute
   '/_app/dashboard/interview-prep': typeof AppDashboardInterviewPrepRoute
@@ -259,6 +276,7 @@ export interface FileRoutesById {
   '/api/live/session': typeof ApiLiveSessionRoute
   '/api/live/suggest': typeof ApiLiveSuggestRoute
   '/api/live/token': typeof ApiLiveTokenRoute
+  '/api/paystack/webhook': typeof ApiPaystackWebhookRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -273,6 +291,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/workspace/$sessionId'
     | '/workspace/new'
+    | '/dashboard/admin'
     | '/dashboard/billing'
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
@@ -289,6 +308,7 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
+    | '/api/paystack/webhook'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -301,6 +321,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/workspace/$sessionId'
     | '/workspace/new'
+    | '/dashboard/admin'
     | '/dashboard/billing'
     | '/dashboard/credits'
     | '/dashboard/interview-prep'
@@ -317,6 +338,7 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
+    | '/api/paystack/webhook'
     | '/dashboard'
   id:
     | '__root__'
@@ -330,6 +352,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/workspace/$sessionId'
     | '/workspace/new'
+    | '/_app/dashboard/admin'
     | '/_app/dashboard/billing'
     | '/_app/dashboard/credits'
     | '/_app/dashboard/interview-prep'
@@ -346,6 +369,7 @@ export interface FileRouteTypes {
     | '/api/live/session'
     | '/api/live/suggest'
     | '/api/live/token'
+    | '/api/paystack/webhook'
     | '/_app/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -364,6 +388,7 @@ export interface RootRouteChildren {
   ApiLiveSessionRoute: typeof ApiLiveSessionRoute
   ApiLiveSuggestRoute: typeof ApiLiveSuggestRoute
   ApiLiveTokenRoute: typeof ApiLiveTokenRoute
+  ApiPaystackWebhookRoute: typeof ApiPaystackWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -444,6 +469,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AppDashboardIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/paystack/webhook': {
+      id: '/api/paystack/webhook'
+      path: '/api/paystack/webhook'
+      fullPath: '/api/paystack/webhook'
+      preLoaderRoute: typeof ApiPaystackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/live/token': {
       id: '/api/live/token'
@@ -557,10 +589,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardBillingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/dashboard/admin': {
+      id: '/_app/dashboard/admin'
+      path: '/dashboard/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof AppDashboardAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppDashboardAdminRoute: typeof AppDashboardAdminRoute
   AppDashboardBillingRoute: typeof AppDashboardBillingRoute
   AppDashboardCreditsRoute: typeof AppDashboardCreditsRoute
   AppDashboardInterviewPrepRoute: typeof AppDashboardInterviewPrepRoute
@@ -577,6 +617,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDashboardAdminRoute: AppDashboardAdminRoute,
   AppDashboardBillingRoute: AppDashboardBillingRoute,
   AppDashboardCreditsRoute: AppDashboardCreditsRoute,
   AppDashboardInterviewPrepRoute: AppDashboardInterviewPrepRoute,
@@ -609,6 +650,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLiveSessionRoute: ApiLiveSessionRoute,
   ApiLiveSuggestRoute: ApiLiveSuggestRoute,
   ApiLiveTokenRoute: ApiLiveTokenRoute,
+  ApiPaystackWebhookRoute: ApiPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

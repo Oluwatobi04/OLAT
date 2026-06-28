@@ -41,6 +41,7 @@ function AppLayout() {
         onClose={() => setSidebarOpen(false)}
         user={auth.user}
         credits={auth.credits}
+        role={auth.organization?.role}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopNav

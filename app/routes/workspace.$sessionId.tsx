@@ -134,6 +134,19 @@ function Workspace() {
     return () => clearInterval(t);
   }, []);
 
+  // Lock page scrolling while the live workspace is open. Only the inner panels
+  // (transcript, AI response, screen analysis) scroll. Restored on exit.
+  useEffect(() => {
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, []);
+
   // keep transcript scrolled to the latest line
   useEffect(() => {
     transcriptEnd.current?.scrollIntoView({ behavior: "smooth", block: "end" });

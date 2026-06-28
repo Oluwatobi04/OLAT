@@ -23,6 +23,12 @@ const schema = z.object({
   // Cryptomus
   CRYPTOMUS_API_KEY: z.string().optional(),
   CRYPTOMUS_MERCHANT_ID: z.string().optional(),
+  // Paystack (Nigerian / card payments)
+  PAYSTACK_SECRET_KEY: z.string().optional(),
+  PAYSTACK_PUBLIC_KEY: z.string().optional(),
+  PAYSTACK_WEBHOOK_SECRET: z.string().optional(),
+  PAYSTACK_CURRENCY: z.string().optional(),
+  PAYSTACK_USD_TO_NGN: z.string().optional(),
 });
 
 // Parse lazily and tolerate missing values in dev so the app can boot for UI work.

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { prisma } from "~/lib/db.server";
 import { requireAuth } from "~/lib/auth.server";
 import { isCryptomusConfigured } from "~/lib/cryptomus.server";
+import { isPaystackConfigured } from "~/lib/paystack.server";
 import { ensureCreditBalance, minutesForCredits } from "~/lib/credits.server";
 import { CREDIT_PACKS, SUBSCRIPTION_PLANS } from "~/server/payments";
 
@@ -47,6 +48,7 @@ export const getBillingStatusFn = createServerFn({ method: "GET" }).handler(
       packs: CREDIT_PACKS,
       plans: SUBSCRIPTION_PLANS,
       cryptoConfigured: isCryptomusConfigured(),
+      paystackConfigured: isPaystackConfigured(),
     };
   },
 );

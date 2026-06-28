@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Check, Coins, Clock, Star } from "lucide-react";
 import { z } from "zod";
@@ -19,10 +20,13 @@ export const Route = createFileRoute("/_app/dashboard/billing")({
 
 type Busy = string | null;
 
+type PayMethod = "paystack" | "cryptomus";
+
 function BillingPage() {
   const data = Route.useLoaderData();
   const search = Route.useSearch();
   const [busy, setBusy] = useState<Busy>(null);
+  const [method, setMethod] = useState<PayMethod>(data?.paystackConfigured ? "paystack" : "cryptomus");
 
   useEffect(() => {
     if (search.status === "success") toast.success("Payment received — your credits will be added shortly.");
@@ -53,7 +57,13 @@ function BillingPage() {
     try {
       const res = await fn();
       if (!res.ok) {
-        toast.error(res.error === "CRYPTO_NOT_CONFIGURED" ? "Crypto checkout isn't configured yet." : res.error);
+        toast.error(
+          res.error === "CRYPTO_NOT_CONFIGURED"
+            ? "Crypto checkout isn't configured yet."
+            : res.error === "PAYSTACK_NOT_CONFIGURED"
+              ? "Paystack isn't configured yet."
+              : res.error,
+        );
         return;
       }
       window.location.href = res.url;
@@ -75,7 +85,7 @@ function BillingPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">Billing & credits</h1>
         <p className="text-sm text-muted-foreground">
-          1 credit = 30 minutes of live Interview Copilot. Pay in crypto via Cryptomus.
+          1 credit = 30 minutes of live Interview Copilot. Pay by card or bank with Paystack, or with crypto via Cryptomus.
         </p>
       </div>
 
@@ -99,11 +109,39 @@ function BillingPage() {
         </StatCard>
       </div>
 
-      {!data.cryptoConfigured ? (
-        <p className="rounded-xl bg-[#FEF3C7] px-4 py-2.5 text-sm text-[#92400E]">
-          Crypto checkout isn't configured. Set CRYPTOMUS_API_KEY and CRYPTOMUS_MERCHANT_ID to enable purchases.
-        </p>
-      ) : null}
+      {/* ── Payment method selector ── */}
+      <div>
+        <p className="mb-2 text-sm font-medium text-[#0F172A]">Payment method</p>
+        <div className="inline-flex gap-1 rounded-xl border border-border bg-white p-1">
+          {[
+            { key: "paystack" as const, label: "Card / Bank", sub: "Paystack", on: data.paystackConfigured },
+            { key: "cryptomus" as const, label: "Crypto", sub: "USDT · BTC · ETH", on: data.cryptoConfigured },
+          ].map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              disabled={!m.on}
+              onClick={() => setMethod(m.key)}
+              className={
+                "flex flex-col items-start rounded-lg px-4 py-2 text-left transition-colors " +
+                (method === m.key ? "bg-[#DBEAFE] text-[#2563EB]" : "text-muted-foreground hover:bg-[#F8FAFC]") +
+                (!m.on ? " cursor-not-allowed opacity-40" : "")
+              }
+            >
+              <span className="text-sm font-semibold">{m.label}</span>
+              <span className="text-[11px]">
+                {m.sub}
+                {!m.on ? " (not configured)" : ""}
+              </span>
+            </button>
+          ))}
+        </div>
+        {!data.paystackConfigured && !data.cryptoConfigured ? (
+          <p className="mt-2 rounded-xl bg-[#FEF3C7] px-4 py-2.5 text-sm text-[#92400E]">
+            No payment provider is configured. Set Paystack or Cryptomus keys to enable purchases.
+          </p>
+        ) : null}
+      </div>
 
       {/* ── Pricing tabs ── */}
       <Tabs defaultValue="credits" className="w-full">
@@ -114,7 +152,12 @@ function BillingPage() {
 
         {/* Credits */}
         <TabsContent value="credits" className="mt-6">
-          <div className="grid gap-5 md:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="grid items-stretch gap-5 md:grid-cols-3"
+          >
             {packs.map((p) => (
               <PricingCard
                 key={p.key}
@@ -130,27 +173,40 @@ function BillingPage() {
                 cta={`Buy ${p.label}`}
                 loading={busy === `pack:${p.key}`}
                 disabled={!canBill || busy !== null}
-                onSelect={() => go(() => createCreditCheckoutFn({ data: { pack: p.key } }), `pack:${p.key}`)}
+                onSelect={() => go(() => createCreditCheckoutFn({ data: { pack: p.key, method } }), `pack:${p.key}`)}
               />
             ))}
-          </div>
+          </motion.div>
         </TabsContent>
 
         {/* Subscription */}
         <TabsContent value="subscription" className="mt-6">
-          <div className="grid gap-5 md:grid-cols-2 lg:max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="grid items-stretch gap-5 md:grid-cols-2 lg:max-w-3xl"
+          >
             <PricingCard
               name="Monthly Pro"
               price="$49"
               cadence="/month"
-              headline="Unlimited calls"
-              subline="300 credits / month"
+              headline="Unlimited interview sessions"
+              subline="300 interview credits every month"
               blurb="Everything you need for an active interview season."
-              features={["Unlimited calls", "Resume analysis", "AI coaching", "Session reports", "Priority processing"]}
+              features={[
+                "Unlimited interview sessions",
+                "300 interview credits every month",
+                "AI Interview Copilot",
+                "Resume analysis",
+                "Live interview assistance",
+                "Session transcripts",
+                "Priority support",
+              ]}
               cta={isPro && sub?.interval === "MONTHLY" ? "Current plan" : "Choose Monthly"}
               loading={busy === "sub:monthly"}
               disabled={!canBill || busy !== null || (isPro && sub?.interval === "MONTHLY")}
-              onSelect={() => go(() => createSubscriptionCheckoutFn({ data: { plan: "monthly" } }), "sub:monthly")}
+              onSelect={() => go(() => createSubscriptionCheckoutFn({ data: { plan: "monthly", method } }), "sub:monthly")}
             />
             <PricingCard
               highlight
@@ -158,16 +214,23 @@ function BillingPage() {
               name="Annual Pro"
               price="$285"
               cadence="/year"
-              headline="Unlimited calls"
-              subline="3,600 credits / year"
-              blurb="Two-plus months free vs paying monthly."
-              features={["Everything in Monthly", "3,600 credits / year", "Save 52% vs monthly", "Early feature access"]}
+              headline="Unlimited interview sessions"
+              subline="3,600 interview credits yearly"
+              blurb="Save over two months compared to paying monthly."
+              features={[
+                "Unlimited interview sessions",
+                "3,600 interview credits yearly",
+                "Everything included in Monthly Pro",
+                "Save 52% annually",
+                "Early access to new features",
+                "Priority support",
+              ]}
               cta={isPro && sub?.interval === "ANNUAL" ? "Current plan" : "Choose Annual"}
               loading={busy === "sub:annual"}
               disabled={!canBill || busy !== null || (isPro && sub?.interval === "ANNUAL")}
-              onSelect={() => go(() => createSubscriptionCheckoutFn({ data: { plan: "annual" } }), "sub:annual")}
+              onSelect={() => go(() => createSubscriptionCheckoutFn({ data: { plan: "annual", method } }), "sub:annual")}
             />
-          </div>
+          </motion.div>
         </TabsContent>
       </Tabs>
 

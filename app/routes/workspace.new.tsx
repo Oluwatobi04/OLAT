@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Mic, Settings2, Cable } from "lucide-react";
@@ -39,11 +39,36 @@ function NewSessionFlow() {
     tabAudio: true,
     screen: false,
   });
-  const set = (k: keyof typeof form, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState<{ role?: string; company?: string; industry?: string }>({});
+  const roleRef = useRef<HTMLInputElement>(null);
+  const companyRef = useRef<HTMLInputElement>(null);
+  const industryRef = useRef<HTMLInputElement>(null);
+
+  const set = (k: keyof typeof form, v: unknown) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (k === "role" || k === "company" || k === "industry") {
+      setErrors((e) => ({ ...e, [k]: undefined }));
+    }
+  };
+
+  // Required: Role, Company, Industry. Returns true when valid; otherwise shows
+  // inline messages, red borders, and focuses the first invalid field.
+  function validateStep1(): boolean {
+    const next: { role?: string; company?: string; industry?: string } = {};
+    if (!form.role.trim()) next.role = "Role is required.";
+    if (!form.company.trim()) next.company = "Company is required.";
+    if (!form.industry.trim()) next.industry = "Industry is required.";
+    setErrors(next);
+    const firstInvalid = next.role ? roleRef : next.company ? companyRef : next.industry ? industryRef : null;
+    if (firstInvalid) {
+      firstInvalid.current?.focus();
+      return false;
+    }
+    return true;
+  }
 
   async function start() {
-    if (!form.role.trim() || !form.industry.trim()) {
-      toast.error("Role and industry are required");
+    if (!validateStep1()) {
       setStep(1);
       return;
     }
@@ -122,9 +147,36 @@ function NewSessionFlow() {
               <h2 className="text-xl font-bold text-[#0F172A]">Interview information</h2>
               <p className="text-sm text-muted-foreground">Works for any profession. Be specific.</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Role *"><Input value={form.role} onChange={(e) => set("role", e.target.value)} placeholder="e.g. Registered Nurse" /></Field>
-                <Field label="Company"><Input value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="e.g. Mayo Clinic" /></Field>
-                <Field label="Industry *"><Input value={form.industry} onChange={(e) => set("industry", e.target.value)} placeholder="e.g. Healthcare" /></Field>
+                <Field label="Role *" error={errors.role}>
+                  <Input
+                    ref={roleRef}
+                    value={form.role}
+                    onChange={(e) => set("role", e.target.value)}
+                    placeholder="e.g. Registered Nurse"
+                    aria-invalid={!!errors.role}
+                    className={errors.role ? "border-[#EF4444] focus-visible:ring-[#EF4444]" : ""}
+                  />
+                </Field>
+                <Field label="Company *" error={errors.company}>
+                  <Input
+                    ref={companyRef}
+                    value={form.company}
+                    onChange={(e) => set("company", e.target.value)}
+                    placeholder="e.g. Mayo Clinic"
+                    aria-invalid={!!errors.company}
+                    className={errors.company ? "border-[#EF4444] focus-visible:ring-[#EF4444]" : ""}
+                  />
+                </Field>
+                <Field label="Industry *" error={errors.industry}>
+                  <Input
+                    ref={industryRef}
+                    value={form.industry}
+                    onChange={(e) => set("industry", e.target.value)}
+                    placeholder="e.g. Healthcare"
+                    aria-invalid={!!errors.industry}
+                    className={errors.industry ? "border-[#EF4444] focus-visible:ring-[#EF4444]" : ""}
+                  />
+                </Field>
                 <Field label="Resume">
                   <select
                     value={form.resumeId}
@@ -203,7 +255,12 @@ function NewSessionFlow() {
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
             {step < 3 ? (
-              <Button onClick={() => setStep((s) => Math.min(3, s + 1))}>
+              <Button
+                onClick={() => {
+                  if (step === 1 && !validateStep1()) return;
+                  setStep((s) => Math.min(3, s + 1));
+                }}
+              >
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
@@ -219,11 +276,12 @@ function NewSessionFlow() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
       {children}
+      {error ? <p className="text-xs font-medium text-[#EF4444]">{error}</p> : null}
     </div>
   );
 }

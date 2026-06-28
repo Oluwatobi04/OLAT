@@ -5,6 +5,7 @@ import {
   FileText,
   FolderOpen,
   CreditCard,
+  ShieldCheck,
   Settings,
   LifeBuoy,
   X,
@@ -28,11 +29,16 @@ interface SidebarProps {
   onClose: () => void;
   user: { email: string; profile: { fullName: string | null; avatarUrl: string | null } | null };
   credits: { remaining: number; allocation: number; used: number; plan: string };
+  role?: string;
 }
 
-export function Sidebar({ open, onClose, user, credits }: SidebarProps) {
+export function Sidebar({ open, onClose, user, credits, role }: SidebarProps) {
   const { location } = useRouterState();
   const low = credits.remaining <= 5;
+  const isAdmin = role ? ["OWNER", "ADMIN", "BILLING"].includes(role) : false;
+  const nav = isAdmin
+    ? [...NAV.slice(0, 5), { to: "/dashboard/admin", label: "Payments admin", icon: ShieldCheck }, ...NAV.slice(5)]
+    : NAV;
 
   return (
     <>
@@ -60,7 +66,7 @@ export function Sidebar({ open, onClose, user, credits }: SidebarProps) {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const active =
               item.to === "/dashboard"
                 ? location.pathname === "/dashboard"
